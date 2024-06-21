@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ask Page</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="ask.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-item ask" id="askButton" onclick="askbutton">
+          <i class="ri-question-line"></i>
+          <span>Ask</span>
+        </div>
+        <div class="sidebar-item req" id="reqButton" onclick="reqButton">
+          <i class="ri-file-list-line"></i>
+          <span>Req</span>
+        </div>
+        <div
+          class="sidebar-item portal active"
+          id="portalButton"
+          onclick="portalButton"
+        >
+          <i class="ri-folder-upload-line"></i>
+          <span>Portal</span>
+        </div>
+        <div class="user-profile">
+          <div class="user-avatar">A</div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div id="ask-page" class="page-content">
+          <h1>Ask Page</h1>
+          <div class="task-status">
+            <h2>Clearly requirement</h2>
+            <div class="clarify-box">
+              <h3>Product Requirements Document (PRD) for "Chat Solazu"</h3>
+              <ul>
+                <li>
+                  <strong>Introduction:</strong> The purpose of this document is
+                  to outline the requirements...
+                </li>
+                <li>
+                  <strong>Product Overview:</strong> "Chat Solazu" is a secure
+                  and user-friendly chat platform...
+                </li>
+                <li>
+                  <strong>User Stories Target Users:</strong> Employees of
+                  Solazu, including executives, managers...
+                </li>
+                <li>
+                  <strong>Features Key Features:</strong> Real-time Messaging:
+                  Objective: Enable instant...
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="chat-requirement">
+            <h2>Chat requirement</h2>
+            <div class="requirement-details">
+              <h3>Explain project ujet, epics: AXE-1234</h3>
+              <p>
+                The two main reasons why the weather does not stay the same
+                are...
+              </p>
+            </div>
+          </div>
+          <div class="note">
+            <div class="note-content"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="scripts.js"></script>
+  </body>
+</html>

@@ -1,1 +1,1 @@
-# SolazuChat
+# FE-Solazu

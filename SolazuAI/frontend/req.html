@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat Solazu - Requirements</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="req.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Sidebar -->
+
+      <aside class="sidebar">
+        <div class="sidebar-item ask" id="askButton" onclick="askbutton">
+          <i class="ri-question-line"></i>
+          <span>Ask</span>
+        </div>
+        <div class="sidebar-item req" id="reqButton" onclick="reqButton">
+          <i class="ri-file-list-line"></i>
+          <span>Req</span>
+        </div>
+        <div
+          class="sidebar-item portal active"
+          id="portalButton"
+          onclick="portalButton"
+        >
+          <i class="ri-folder-upload-line"></i>
+          <span>Portal</span>
+        </div>
+        <div class="user-profile">
+          <div class="user-avatar">A</div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <header class="header">
+          <div class="search-container">
+            <input type="text" placeholder="Search project" />
+            <input type="text" placeholder="Search epics" />
+            <input type="text" placeholder="Search story" />
+          </div>
+          <div class="title">
+            <h1>Clearly requirement</h1>
+          </div>
+        </header>
+        <div class="document">
+          <h2>Product Requirements Document (PRD) for "Chat Solazu"</h2>
+          <div class="document-content">
+            <h3>1. Introduction</h3>
+            <p>
+              The purpose of this document is to outline the requirements and
+              specifications for "Chat Solazu," a dedicated chat platform
+              designed to enhance communication and collaboration among
+              employees at Solazu...
+            </p>
+            <!-- Remaining document content -->
+          </div>
+        </div>
+      </main>
+
+      <!-- Side Panel -->
+      <aside class="side-panel">
+        <div class="question-section">
+          <h3>Unresolved questions: 1/2</h3>
+          <div class="question">
+            <p>Question 1. What is the purpose of this document?</p>
+            <button class="resolve-button">Resolve</button>
+          </div>
+          <div class="question">
+            <p>Question 2. Who are the target users? What are their goals?</p>
+            <button class="resolve-button">Resolve</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <script src="scripts.js"></script>
+  </body>
+</html>
