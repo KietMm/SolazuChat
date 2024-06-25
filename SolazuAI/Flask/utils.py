@@ -10,8 +10,11 @@ from atlassian import Confluence
 from dotenv import load_dotenv
 from flask import jsonify
 from datetime import datetime
+import re
 
 load_dotenv()
+
+# ---------------------------- FETCH GITHUB CONTENTS ----------------------------
 
 def fetch_directory_contents(url, headers):
     response = requests.get(url, headers=headers)
@@ -33,40 +36,30 @@ def fetch_directory_contents(url, headers):
     else:
         print(f"Failed to fetch, URL: {url}, Status Code: {response.status_code}, Response: {response.text}")
         return {'error': f"Failed to fetch directory with status: {response.status_code}"}
+    
+def load_repository_contents(github_url):
+    GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')  # Should be secured differently
+    if not github_url:
+        return jsonify({'error': 'GitHub URL is required'}), 400
 
-def get_remote_links(issue_key):
-    jiraOptions = {'server': os.getenv('JIRA_SERVER')}
-    try:
-        jira = JIRA(options=jiraOptions, basic_auth=(os.getenv('JIRA_USERNAME'), os.getenv('JIRA_API_TOKEN')))
-    except Exception as e:
-        return {"error": "Failed to authenticate with JIRA", "details": str(e)}
+    match = re.search(r'github\.com/([^/]+)/([^/]+)', github_url)
+    if not match:
+        return jsonify({'error': 'Invalid GitHub URL'}), 400
 
-    try:
-        remote_links = jira.remote_links(issue_key)
-        
-        # Classify links as Confluence or Google Docs
-        classified_links = {
-            'confluence': [],
-            'googleDocs': [],
-            'otherLinks': []
-        }
-        
-        for link in remote_links:
-            url = link.object.url
-            if 'test-company-webhook.atlassian.net' in url:
-                confluence_details = get_confluence_details(url)
-                classified_links['confluence'].append({'url': url, **confluence_details})
-            elif 'docs.google.com' in url:
-                google_docs_details = get_google_docs_details(url)
-                classified_links['googleDocs'].append({'url': url, **google_docs_details})
-            else:
-                classified_links['otherLinks'].append({'url': url})
-        
-        return classified_links
+    owner, repo = match.groups()
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents?recursive=1"
+    headers = {
+        'Authorization': f'token {GITHUB_TOKEN}',
+        'Accept': 'application/vnd.github.v3+json'
+    }
 
-    except Exception as e:
-        return {"error": "Failed to fetch remote issue links from JIRA", "details": str(e)}
+    repository_contents = fetch_directory_contents(url, headers)
+    if 'error' not in repository_contents:
+        return jsonify(repository_contents)
+    else:
+        return jsonify({'error': 'Failed to retrieve repository contents'})
 
+# ---------------------------- GET CONFLUENCE DETAILS ----------------------------
 def get_confluence_details(url):
     confluence = Confluence(
         url=os.getenv('CONFLUENCE_URL'),
@@ -89,7 +82,9 @@ def get_confluence_details(url):
         return page_details
     except Exception as e:
         return {"error": "Failed to fetch Confluence page details", "details": str(e)}
-    
+
+
+# ---------------------------- GET GOOGLE DOCS DETAILS --------------------------------
 def read_paragraph_element(element):
     """Returns the text in the given ParagraphElement."""
     text_run = element.get('textRun')
@@ -144,24 +139,60 @@ def get_google_docs_details(url):
         return doc_details
     except Exception as e:
         return {"error": "Failed to fetch Google Docs details", "details": str(e)}
+    
+
+
+
+# ---------------------------- HANDLE WEBHOOK ----------------------------
 
 def addLinks(link_data):
     '''
     Add links and date added to the entry
     '''
-    entry = {}
+    entry = []
     if link_data:
         if isinstance(link_data, list):
             for link in link_data:
-                entry["links_status"].append({
+                entry.append({
                     "url": link,
                     "day_added": datetime.now().strftime('%d-%m-%Y')
                     })
         else:
-            entry["links_status"].append({
+            entry.append({
                 "url": link_data,
                 "day_added": datetime.now().strftime('%d-%m-%Y')
             })
+    return entry
+
+def get_remote_links(issue_key):
+    jiraOptions = {'server': os.getenv('JIRA_SERVER')}
+    try:
+        jira = JIRA(options=jiraOptions, basic_auth=(os.getenv('JIRA_USERNAME'), os.getenv('JIRA_API_TOKEN')))
+    except Exception as e:
+        return {"error": "Failed to authenticate with JIRA", "details": str(e)}
+
+    try:
+        remote_links = jira.remote_links(issue_key)
+        
+        # Classify links as Confluence or Google Docs
+        classified_links = {
+            'confluence': [],
+            'googleDocs': [],
+            'otherLinks': []
+        }
+        
+        for link in remote_links:
+            url = link.object.url
+            if 'test-company-webhook.atlassian.net' in url:
+                confluence_details = get_confluence_details(url)
+                classified_links['confluence'].append({'url': url, **confluence_details})
+            else:
+                classified_links['otherLinks'].append({'url': url})
+        
+        return classified_links
+
+    except Exception as e:
+        return {"error": "Failed to fetch remote issue links from JIRA", "details": str(e)}
     
 def handle_webhook(projectName, githubLink = None, jiraLink = None, confluenceLink = None, docsLink = None):
     '''
@@ -226,3 +257,4 @@ def handle_webhook(projectName, githubLink = None, jiraLink = None, confluenceLi
         return result
     except Exception as e:
         return jsonify({"error": "Failed to fetch issues from JIRA", "details": str(e)}), 500
+    

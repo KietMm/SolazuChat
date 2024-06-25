@@ -3,8 +3,11 @@ from pymongo.server_api import ServerApi
 import os
 from dotenv import load_dotenv
 from flask import jsonify
+from datetime import datetime
 
 load_dotenv()
+
+# ----------------- CONNECT TO DATABASE -----------------
 
 def connect_to_mongodb():
     uri = os.getenv('URI')
@@ -15,6 +18,8 @@ def connect_to_mongodb():
     except Exception as e:
         print(e)
     return client
+
+# ----------------- ADD DATA TO DATABASE -----------------
 
 def addDataToMongoDB(data):
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
@@ -36,6 +41,8 @@ def addDataToMongoDB(data):
         return {"success": "Data added to MongoDB successfully", "code": 200}
     except Exception as e:
         return {"error": "Failed to add data to MongoDB", "details": str(e), "code": 500}
+    
+# ----------------- UPDATE DATA IN DATABASE -----------------
 
 def updateData(projectName, newData):
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
@@ -60,49 +67,9 @@ def updateData(projectName, newData):
         return {"success": "Data updated in MongoDB successfully", "code": 200}
     except Exception as e:
         return {"error": "Failed to update data in MongoDB", "details": str(e), "code": 500}
+    
 
-def checkLinkfromDatabase(projectName):
-    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
-    db = mongo_client['project_db']
-    projects_collection = db['projects']
-    result = []
-    data = projects_collection.find({"project_name": projectName})
-    for record in data:
-        entry = {
-            "project_name": record.get('project_name'),
-            "links_status": []
-        }
-
-        # Check github links
-        github_links = record.get('github_link', {}).get('url', [])
-        for link in github_links:
-            entry["links_status"].append({"url": link, "status": "OK", "date": record.get('github_link', {}).get('day_added')})
-
-        # Check docs links
-        docs_link = record.get('docs_link', {}).get('url', [])
-        if docs_link:
-            entry["links_status"].append({"url": docs_link, "status": "OK", "date": record.get('docs_link', {}).get('day_added')})
-
-        # Check jira links
-        jira_link = record.get('jira_link', {}).get('url', [])
-        if jira_link:
-            entry["links_status"].append({"url": jira_link, "status": "OK", "date": record.get('jira_link', {}).get('day_added')})
-
-        # Check confluence links
-        confluence_link = record.get('confluence_link', {}).get('url', [])
-        if confluence_link:
-            entry["links_status"].append({"url": confluence_link, "status": "OK", "date": record.get('confluence_link', {}).get('day_added')})
-
-        # Check confluence links in issues
-        issues = record.get('issues', [])
-        for issue in issues:
-            confluence_links = issue.get('source', {}).get('confluence', [])
-            for link in confluence_links:
-                entry["links_status"].append({"url": link.get('url'), "status": "OK", "type": "confluence"})
-
-        result.append(entry)
-
-    return jsonify(result)
+# ----------------- GET PROJECT LIST FROM DATABASE -----------------
 
 def getProjectListDatabase():
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
@@ -110,6 +77,8 @@ def getProjectListDatabase():
     projects_collection = db['projects']
     project_list = projects_collection.distinct("project_name")
     return jsonify(project_list)
+
+# ----------------- GET EPIC LIST FROM DATABASE -----------------
 
 def getEpicListDatabase(projectName):
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
@@ -129,6 +98,8 @@ def getEpicListDatabase(projectName):
     
     return jsonify(result)
 
+# ----------------- GET TICKET LIST FROM DATABASE -----------------
+
 def getTicketListDatabase(projectName, epicKey):
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
@@ -147,14 +118,146 @@ def getTicketListDatabase(projectName, epicKey):
         return {"error": "Epic not found in the project"}
     
     related_issues = [issue for issue in issues if issue.get('parent') == epicKey]
-    ticket = [issue.get('summary') for issue in related_issues if (issue.get('issue_type') == 'Task' or issue.get('issue_type') == 'Bug' or issue.get('issue_type') == 'Story')]
+    ticket = [{"name": issue.get('summary'), "key": issue.get("key"), "type": issue.get('issue_type')} for issue in related_issues if (issue.get('issue_type') == 'Task' or issue.get('issue_type') == 'Bug' or issue.get('issue_type') == 'Story')]
     related_issues = epic.get('tasks', [])
-    ticket.extend([issue.get('summary') for issue in related_issues if (issue.get('issue_type') == 'Task' or issue.get('issue_type') == 'Bug' or issue.get('issue_type') == 'Story')])
+    ticket.extend([{"name": issue.get('summary'), "key": issue.get("key"), "type": issue.get('issue_type')} for issue in related_issues if (issue.get('issue_type') == 'Task' or issue.get('issue_type') == 'Bug' or issue.get('issue_type') == 'Story')])
     
-    result = {
+    data = projects_collection.find({"project_name": projectName})
+    for record in data:
+        entry = []
+        i = 1
+        # Check github links
+        github_links = record.get('github_link', {})
+        if github_links:
+            for link in github_links:
+                entry.append({"url": link.get('url'), "name": "External Github " + str(i), "type": "Github"})
+                i += 1
+
+        i = 1
+        # Check docs links
+        docs_link = record.get('docs_link', {})
+        if docs_link:
+            for link in docs_link:
+                entry.append({"url": link.get('url'), "name": "External Docs " + str(i), "type": "Docs"})
+                i += 1
+
+        i = 1
+        # Check jira links
+        jira_link = record.get('jira_link', {})
+        if jira_link:
+            for link in jira_link:
+                entry.append({"url": link.get('url'), "name": "External Jira " + str(i), "type": "Jira"})
+                i += 1
+
+        i = 1
+        # Check confluence links
+        confluence_link = record.get('confluence_link', {})
+        if confluence_link:
+            for link in confluence_link:
+                entry.append({"url": link.get('url'), "name": "External Confluence " + str(i), "type": "Confluence"})
+                i += 1
+
+        # Check confluence links in issues
+        issues = record.get('issues', [])
+        epics = next((issue for issue in issues if issue.get('key') == epicKey and issue.get('issue_type') == 'Epic'), None)
+        entry.extend([{"url": j.get('url'), "name": j.get('title'), "type": "Confluence"} for j in [i for i in epics.get('source', {}).get('confluence', [])]])
+        entry.extend([{"url": j.get('url'), "name": j.get('title'), "type": "Docs"} for j in [i for i in epics.get('source', {}).get('googleDocs', [])]])
+        entry.extend([{"url": j.get('url'), "name": j.get('title'), "type": "Other"} for j in [i for i in epics.get('source', {}).get('otherLinks', [])]])
+
+        tasks = epic.get('tasks', [])
+        for task in tasks:
+            entry.extend([{"url": j.get('url'), "name": j.get('title'), "type": "Confluence"} for j in [i for i in task.get('source', {}).get('confluence', [])]])
+            entry.extend([{"url": j.get('url'), "name": j.get('title'), "type": "Docs"} for j in [i for i in task.get('source', {}).get('googleDocs', [])]])
+            entry.extend([{"url": j.get('url'), "name": j.get('title'), "type": "Other"} for j in [i for i in task.get('source', {}).get('otherLinks', [])]])
+
+        ticket.extend(entry)
+
+    finalResult = {
         "projectName": projectName,
         "epic": epic.get('summary'),
         "tickets": ticket
     }
 
+    return jsonify(finalResult)
+
+# ----------------- GET LINK BASED ON DATA FROM DATABASE -----------------
+
+def getLinkfromDatabase(projectName, epicKey = None, ticketKey = None):
+
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['projects']
+    result = []
+    data = projects_collection.find({"project_name": projectName})
+    for record in data:
+        entry = {
+            "project_name": record.get('project_name'),
+            "links_status": []
+        }
+        # Check github links
+        github_links = record.get('github_link', {})
+        for link in github_links:
+            entry["links_status"].append({"url": link.get('url'), "status": "OK", "date": link.get('day_added'), "parent": projectName})
+
+        # Check docs links
+        docs_link = record.get('docs_link', {})
+        for link in docs_link:
+            entry["links_status"].append({"url": link.get('url'), "status": "OK", "date": link.get('day_added'), "parent": projectName})
+
+        # Check jira links
+        jira_link = record.get('jira_link', {})
+        for link in jira_link:
+            entry["links_status"].append({"url": link.get('url'), "status": "OK", "date": link.get('day_added'), "parent": projectName})
+
+        # Check confluence links
+        confluence_link = record.get('confluence_link', {})
+        for link in confluence_link:
+            entry["links_status"].append({"url": link.get('url'), "status": "OK", "date": link.get('day_added'), "parent": projectName})
+
+        # Check confluence links in issues
+        issues = record.get('issues', [])
+        if (epicKey is not None):
+            epics = next((issue for issue in issues if issue.get('key') == epicKey and issue.get('issue_type') == 'Epic'), None)
+            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('confluence', [])]])
+            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('googleDocs', [])]])
+            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('otherLinks', [])]])
+
+            if (ticketKey is not None):
+                tasks = next((epic for epic in epics.get('tasks', []) if epic.get('key') == ticketKey), None)
+                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('confluence', [])]])
+                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('googleDocs', [])]])
+                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('otherLinks', [])]])
+            else:
+                tasks = epics.get('tasks', [])
+                for task in tasks:
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('confluence', [])]])
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('googleDocs', [])]])
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('otherLinks', [])]])
+        else:
+            issues = record.get('issues', [])
+            for epics in issues:
+                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('confluence', [])]])
+                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('googleDocs', [])]])
+                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('otherLinks', [])]])
+
+                tasks = epics.get('tasks', [])
+                for task in tasks:
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('confluence', [])]])
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('googleDocs', [])]])
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('otherLinks', [])]])
+
+
+        result.append(entry)
+
     return jsonify(result)
+
+
+        
+
+
+    
+
+
+
+    
+        

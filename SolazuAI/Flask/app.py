@@ -1,70 +1,21 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify
 import requests
 import re  # Regular expression library for parsing
 from flask_cors import CORS
-from atlassian import Confluence 
-from jira import JIRA
-from utils import fetch_directory_contents, handle_webhook
+from utils import handle_webhook, load_repository_contents, get_confluence_details, get_google_docs_details
 from dotenv import load_dotenv
 import os
-from database import connect_to_mongodb, addDataToMongoDB, checkLinkfromDatabase, getProjectListDatabase, getEpicListDatabase, getTicketListDatabase
+from database import connect_to_mongodb, addDataToMongoDB, checkLinkfromDatabase, getProjectListDatabase, getEpicListDatabase, getTicketListDatabase, getLinkfromDatabase
 
 load_dotenv()
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 @app.route('/loadGithub', methods=['GET'])
-def load_repository_contents():
-    github_url = request.args.get('github_url')
-    GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')  # Should be secured differently
-    if not github_url:
-        return jsonify({'error': 'GitHub URL is required'}), 400
-
-    match = re.search(r'github\.com/([^/]+)/([^/]+)', github_url)
-    if not match:
-        return jsonify({'error': 'Invalid GitHub URL'}), 400
-
-    owner, repo = match.groups()
-    url = f"https://api.github.com/repos/{owner}/{repo}/contents?recursive=1"
-    headers = {
-        'Authorization': f'token {GITHUB_TOKEN}',
-        'Accept': 'application/vnd.github.v3+json'
-    }
-
-    repository_contents = fetch_directory_contents(url, headers)
-    if 'error' not in repository_contents:
-        return jsonify(repository_contents)
-    else:
-        return jsonify({'error': 'Failed to retrieve repository contents'})
+def load_repository():
+    github_url = request.args.get('githubLink')
+    return load_repository_contents(github_url)
     
-@app.route('/confluence', methods=['GET'])
-def get_confluence_page():
-    confluence = Confluence(
-        url=os.getenv('CONFLUENCE_URL'),
-        username=os.getenv('CONFLUENCE_USERNAME'),
-        password=os.getenv('CONFLUENCE_API_TOKEN')
-    )
-
-    try:
-        page_id = 'xxx'  # Replace with actual page ID
-        page = confluence.get_page_by_id(page_id, expand='body.storage,version,metadata,ancestors,space')
-        
-        # Extract the HTML content of the page
-        content = page.get('body', {}).get('storage', {}).get('value', '')
-        
-        page_details = {
-            "id": page.get('id'),
-            "title": page.get('title'),
-            "content": content,
-            "version": page.get('version', {}).get('number'),
-            "created_by": page.get('version', {}).get('by', {}).get('displayName'),
-            "created_date": page.get('version', {}).get('when'),
-        }
-        
-        return jsonify(page_details)
-
-    except Exception as e:
-        return jsonify({"error": "Failed to fetch Confluence page details", "details": str(e)}), 500
     
 @app.route('/addToDatabase', methods=['POST'])
 def addToDatabase():
@@ -81,14 +32,10 @@ def addToDatabase():
     data = handle_webhook(projectName, githubLink, jiraLink, docsLink, confluenceLink)
     return addDataToMongoDB(data)
 
-@app.route('/showData', methods=['GET'])
-def showData():
-    projectName = request.args.get('projectName')
-    return checkLinkfromDatabase(projectName)
-
 @app.route('/getProjectsList', methods=['GET'])
 def getProjectList():
     return getProjectListDatabase()
+
 
 @app.route('/getEpicsList', methods=['GET'])
 def getEpicsList():
@@ -96,6 +43,7 @@ def getEpicsList():
     if projectName is None:
         return jsonify({"error": "Project name is required"}), 400
     return getEpicListDatabase(projectName)
+
 
 @app.route('/getTicketsList', methods=['GET'])
 def getTicketList():
@@ -105,6 +53,46 @@ def getTicketList():
     if projectName is None and epicKey is None:
         return jsonify({"error": "Project name is required"}), 400
     return getTicketListDatabase(projectName, epicKey)
+
+
+@app.route('/getContentData', methods=['GET'])
+def getContent():
+    link = request.args.get('link')
+    category = request.args.get('category')
+    
+    if category == "Confluence":
+        return get_confluence_details(link)
+    elif category == "Docs":
+        return get_google_docs_details(link)
+    elif category == "Github":
+        return load_repository_contents(link)
+    else:
+        return jsonify({"error": "Invalid category"}), 400
+    
+    
+@app.route('/getLink', methods=['GET'])
+def getLink():
+    data = request.json
+    projectName = data.get('projectName')
+    if projectName is None:
+        return jsonify({"error": "Project name is required"}), 400
+    epicKey = data.get('epicKey') or None
+    ticketKey = data.get('ticketKey') or None
+    print(projectName, epicKey, ticketKey)
+    return getLinkfromDatabase(projectName, epicKey, ticketKey)
+
+
+@app.route('/test', methods=['POST'])
+def webhook():
+    data = request.json
+
+    projectName = data.get('projectName')
+    githubLink = data.get('githubLink') or None
+    jiraLink = data.get('jiraLink') or None
+    docsLink = data.get('docsLink') or None
+    confluenceLink = data.get('confluenceLink') or None
+
+    return handle_webhook(projectName, githubLink, jiraLink, docsLink, confluenceLink)
 
 if __name__ == "__main__":
     connect_to_mongodb()
