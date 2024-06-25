@@ -8,6 +8,8 @@ from oauth2client import file
 from oauth2client import tools
 from atlassian import Confluence
 from dotenv import load_dotenv
+from flask import jsonify
+from datetime import datetime
 
 load_dotenv()
 
@@ -114,7 +116,6 @@ def read_structural_elements(elements):
             text += read_structural_elements(toc.get('content'))
     return text
 
-
 def get_google_docs_details(url):
     SCOPES = os.getenv('SCOPES')
     DISCOVERY_DOC = os.getenv('DISCOVERY_DOC')
@@ -143,3 +144,85 @@ def get_google_docs_details(url):
         return doc_details
     except Exception as e:
         return {"error": "Failed to fetch Google Docs details", "details": str(e)}
+
+def addLinks(link_data):
+    '''
+    Add links and date added to the entry
+    '''
+    entry = {}
+    if link_data:
+        if isinstance(link_data, list):
+            for link in link_data:
+                entry["links_status"].append({
+                    "url": link,
+                    "day_added": datetime.now().strftime('%d-%m-%Y')
+                    })
+        else:
+            entry["links_status"].append({
+                "url": link_data,
+                "day_added": datetime.now().strftime('%d-%m-%Y')
+            })
+    
+def handle_webhook(projectName, githubLink = None, jiraLink = None, confluenceLink = None, docsLink = None):
+    '''
+    Handle the webhook data and return the formatted data
+    '''
+    jiraOptions = {'server': os.getenv('JIRA_SERVER')}
+    try:
+        jira = JIRA(options=jiraOptions, basic_auth=(os.getenv('JIRA_USERNAME'), os.getenv('JIRA_API_TOKEN')))
+    except Exception as e:
+        return jsonify({"error": "Failed to authenticate with JIRA", "details": str(e)}), 403
+
+    issues = []
+    epics = {}
+    tasks = {}
+
+    try:
+        queryString = 'project = ' + projectName
+        for issue in jira.search_issues(jql_str=queryString, maxResults=False):
+            description = issue.fields.description or ""
+
+            issue_data = {
+                'key': issue.key,
+                'summary': issue.fields.summary,
+                'reporter': issue.fields.reporter.displayName,
+                'description': description,
+                'status': issue.fields.status.name,
+                'issue_type': issue.fields.issuetype.name,
+                'assignee': issue.fields.assignee.displayName if issue.fields.assignee else None,
+                'parent': issue.fields.parent.key if 'parent' in issue.fields.__dict__ else None,
+                'source': get_remote_links(issue.key)
+            }
+
+            if issue.fields.issuetype.name == 'Epic':
+                epics[issue.key] = issue_data
+            elif issue.fields.issuetype.name == 'Task':
+                tasks[issue.key] = issue_data
+            else:
+                issues.append(issue_data)
+
+        for task_key, task_data in tasks.items():
+            if task_data['parent'] in epics:
+                if 'tasks' not in epics[task_data['parent']]:
+                    epics[task_data['parent']]['tasks'] = []
+                epics[task_data['parent']]['tasks'].append(task_data)
+            else:
+                issues.append(task_data)
+
+        for issue_data in issues:
+            if issue_data['parent'] in tasks:
+                if 'subtasks' not in tasks[issue_data['parent']]:
+                    tasks[issue_data['parent']]['subtasks'] = []
+                tasks[issue_data['parent']]['subtasks'].append(issue_data)
+
+        result = {
+            "project_name": projectName,
+            "github_link": addLinks(githubLink),
+            "jira_link": addLinks(jiraLink),
+            "docs_link": addLinks(docsLink),
+            "confluence_link": addLinks(confluenceLink),
+            "issues": list(epics.values()) + [task for task in tasks.values() if task['parent'] not in epics] + [issue for issue in issues if issue['parent'] not in tasks]
+        }
+        return result
+    except Exception as e:
+        return jsonify({"error": "Failed to fetch issues from JIRA", "details": str(e)}), 500
