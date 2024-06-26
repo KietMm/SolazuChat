@@ -1,4 +1,3 @@
-/* Reset */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -16,10 +15,9 @@ html {
   display: flex;
   height: 100vh;
 }
-
-/* Default sidebar style */
+/* Sidebar */
 .sidebar {
-  width: 80px;
+  width: 80px !important;
   background-color: #fff;
   display: flex;
   flex-direction: column;
@@ -63,193 +61,133 @@ html {
   justify-content: center;
   font-size: 20px;
 }
-
-.main-content {
-  flex-grow: 1;
-  display: flex;
+.Search {
+  width: 250px;
+  margin-right: 5px;
+  margin-left: 5px;
+  margin-top: 5px;
+  flex-wrap: wrap;
   flex-direction: column;
-  padding: 20px;
-  overflow-y: auto;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.search-container {
-  display: flex;
-  gap: 10px;
-}
-
-.search-container input {
+.search-input {
+  margin-top: 10px;
+  width: 100%;
   padding: 10px;
   border: 1px solid #d1d5db;
   border-radius: 5px;
-  flex-grow: 1;
-}
-
-.title h1 {
-  font-size: 20px;
-  color: #4f46e5;
+  margin-bottom: 10px;
 }
 
 .document {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.document h2 {
-  font-size: 18px;
-  color: #374151;
-  margin-bottom: 10px;
-}
-
-.document h3 {
-  font-size: 16px;
-  color: #4f46e5;
+  width: 85%;
+  margin-left: 10px;
+  margin-right: 10px;
   margin-top: 10px;
+  border-radius: 5px;
+  border: 1px solid #d1d5db;
 }
-
-.document p {
-  margin: 10px 0;
-  color: #6b7280;
-  line-height: 1.6;
-}
-
-.side-panel {
-  width: 300px;
-  background-color: white;
-  padding: 20px;
-  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-}
-
-.question-section {
-  display: flex;
-  flex-direction: column;
-}
-
-.question-section h3 {
-  font-size: 16px;
-  color: #4f46e5;
+.clarify-button {
+  padding: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 10px;
   margin-bottom: 10px;
+  padding: 5px 10px;
+  background-color: #fff;
+  color: #4f46e5;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border: 1px solid #4d71a7;
 }
-
-.question {
+.clarify-button:hover {
+  background-color: #4d71a7;
+  color: #fff;
+}
+.question2 {
+  margin-top: 10px;
+  width: auto;
+  height: 10px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 10px;
   border-bottom: 1px solid #d1d5db;
+  border: 1px solid #d1d5db;
 }
 
-.question p {
-  color: #374151;
-  font-size: 14px;
+/*
+Cua so chat tra loi
+*/
+
+/* chat.css */
+
+.chat-container {
+  width: 400px;
+  height: 500px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: white;
 }
 
-.resolve-button {
-  padding: 5px 10px;
+.chat-header {
   background-color: #4f46e5;
   color: white;
+  padding: 10px;
+  text-align: center;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   border: none;
-  border-radius: 5px;
+  background: transparent;
+  color: white;
+  font-size: 18px;
   cursor: pointer;
 }
 
-.resolve-button:hover {
-  background-color: #3b3ac8;
+.chat-window {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
-/* Media Queries for responsive design */
-
-/* Small devices (tablets, 600px and below) */
-@media (max-width: 600px) {
-  .sidebar {
-    width: 60px; /* Giảm chiều rộng sidebar */
-    padding: 10px 0;
-  }
-
-  .sidebar-item {
-    font-size: 12px;
-  }
-
-  .sidebar-item i {
-    font-size: 20px;
-  }
-
-  .main-content {
-    padding: 10px;
-  }
-
-  .document {
-    padding: 15px;
-  }
-
-  .side-panel {
-    width: 250px;
-    padding: 15px;
-  }
+.message {
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+  background: #f0f0ff;
 }
 
-/* Medium devices (landscape tablets, 768px and below) */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 70px; /* Điều chỉnh lại chiều rộng sidebar */
-    padding: 15px 0;
-  }
-
-  .sidebar-item {
-    font-size: 13px;
-  }
-
-  .sidebar-item i {
-    font-size: 22px;
-  }
-
-  .main-content {
-    padding: 15px;
-  }
-
-  .document {
-    padding: 18px;
-  }
-
-  .side-panel {
-    width: 280px;
-    padding: 18px;
-  }
+.chat-input-container {
+  display: flex;
+  border-top: 1px solid #ddd;
 }
 
-/* Large devices (laptops/desktops, 1024px and below) */
-@media (max-width: 1024px) {
-  .sidebar {
-    width: 80px; /* Điều chỉnh lại chiều rộng sidebar */
-    padding: 20px 0;
-  }
+.chat-input-container input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-top-left-radius: 8px;
+}
 
-  .sidebar-item {
-    font-size: 14px;
-  }
+.chat-input-container button {
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-top-right-radius: 8px;
+}
 
-  .sidebar-item i {
-    font-size: 24px;
-  }
-
-  .main-content {
-    padding: 20px;
-  }
-
-  .document {
-    padding: 20px;
-  }
-
-  .side-panel {
-    width: 300px;
-    padding: 20px;
-  }
+.chat-input-container button:hover {
+  background-color: #3730a3;
 }
