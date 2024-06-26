@@ -23,38 +23,9 @@ LANGCHAIN_TRACING_V2 = os.getenv("LANGCHAIN_TRACING_V2")
 LANGCHAIN_API_KEY = os.getenv("LANGCHAIN_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
-def getPrompt():
-    '''
-    Explanation:
 
-    *System Prompt:
-
-    - Added more descriptive language to set clear expectations for the assistant's behavior.
-    - Emphasized the assistant's skills and approachability.
-
-    *User Prompt:
-
-    - Encourages the user to ask questions or describe issues, setting a welcoming tone.
-    - Clarifies that the assistant will provide detailed explanations and guidance.
-    '''
-    prompt = getPromptwithAgent('CLARIFY')
-    # Define the system prompt
-    system_prompt = prompt.get('system')
-    # user_prompt = prompt.get('user')
-    prompt_template = (
-        f"{system_prompt}\n\n"
-        "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. "
-        "If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.\n\n"
-        "Question: {question}\n\n"
-        "Context: {context}\n\n"
-        "Answer:\n\n"
-    )
-    
-    # Construct the ChatPromptTemplate with the correct format for the messages
-    prompt = ChatPromptTemplate.from_template(prompt_template)
-    return prompt
 
 # ------------------------ SETUP LANGCHAIN & OPENAI ------------------------
 

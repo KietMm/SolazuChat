@@ -38,7 +38,7 @@ def getProjectList():
     return getProjectListDatabase()
 
 
-@app.route('/getEpicsList', methods=['GET'])
+@app.route('/getEpicsList', methods=['POST'])
 def getEpicsList():
     projectName = request.args.get('projectName')
     if projectName is None:
@@ -46,7 +46,7 @@ def getEpicsList():
     return getEpicListDatabase(projectName)
 
 
-@app.route('/getTicketsList', methods=['GET'])
+@app.route('/getTicketsList', methods=['POST'])
 def getTicketList():
     projectName = request.args.get('projectName')
     epicKey = request.args.get('epicKey')
@@ -90,7 +90,7 @@ def setPrompt():
     role = data.get('role')
     return setPromptwithAgent(contextualize_q_system_prompt, qa_system_prompt, role)
 
-@app.route('/getClarify', methods=['GET'])
+@app.route('/getClarify', methods=['POST'])
 def getClarify():
     data = request.json
     session_id = data.get('sessionId')
@@ -112,7 +112,6 @@ def webhook():
     jiraLink = data.get('jiraLink') or None
     docsLink = data.get('docsLink') or None
     confluenceLink = data.get('confluenceLink') or None
-
 
     return handle_webhook(projectName, githubLink, jiraLink, docsLink, confluenceLink)
 

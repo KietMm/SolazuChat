@@ -273,7 +273,7 @@ def setPromptwithAgent(contextualize_q_system_prompt, qa_system_prompt, role="CL
                 if result.matched_count == 0:
                     return {"error": "No document found with the given role", "code": 404}
                 if result.modified_count == 0:
-                    return {"error": "Prompt was not updated (it may already be up-to-date)", "code": 304}
+                    return {"success": "Prompt was not updated (it may already be up-to-date)", "code": 304}
                 return {"success": "Prompt updated successfully", "code": 200}
             except Exception as e:
                 return {"error": "Failed to update prompt", "details": str(e), "code": 500}
