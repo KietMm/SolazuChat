@@ -14,7 +14,7 @@ import re
 
 load_dotenv()
 
-# ---------------------------- FETCH GITHUB CONTENTS ----------------------------
+# ---------------------------- FETCH GITHUB CONTENTS BY LINK ----------------------------
 
 def fetch_directory_contents(url, headers):
     response = requests.get(url, headers=headers)
@@ -59,7 +59,7 @@ def load_repository_contents(github_url):
     else:
         return jsonify({'error': 'Failed to retrieve repository contents'})
 
-# ---------------------------- GET CONFLUENCE DETAILS ----------------------------
+# ---------------------------- GET CONFLUENCE DETAILS BY LINK ----------------------------
 def get_confluence_details(url):
     confluence = Confluence(
         url=os.getenv('CONFLUENCE_URL'),
@@ -84,7 +84,7 @@ def get_confluence_details(url):
         return {"error": "Failed to fetch Confluence page details", "details": str(e)}
 
 
-# ---------------------------- GET GOOGLE DOCS DETAILS --------------------------------
+# ---------------------------- GET GOOGLE DOCS DETAILS BY LINK --------------------------------
 def read_paragraph_element(element):
     """Returns the text in the given ParagraphElement."""
     text_run = element.get('textRun')
@@ -140,8 +140,6 @@ def get_google_docs_details(url):
     except Exception as e:
         return {"error": "Failed to fetch Google Docs details", "details": str(e)}
     
-
-
 
 # ---------------------------- HANDLE WEBHOOK ----------------------------
 

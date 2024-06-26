@@ -4,13 +4,15 @@ import os
 from dotenv import load_dotenv
 from flask import jsonify
 from datetime import datetime
+from langchain.schema import HumanMessage, AIMessage
+from langchain_community.chat_message_histories import ChatMessageHistory
 
 load_dotenv()
 
 # ----------------- CONNECT TO DATABASE -----------------
 
 def connect_to_mongodb():
-    uri = os.getenv('URI')
+    uri = os.getenv('MONGODB_URI')
     client = MongoClient(uri)
     try:
         client.admin.command('ping')
@@ -252,6 +254,103 @@ def getLinkfromDatabase(projectName, epicKey = None, ticketKey = None):
     return jsonify(result)
 
 
+# ---------------------------- PROMPT WITH AGENT ----------------------------
+def setPromptwithAgent(contextualize_q_system_prompt, qa_system_prompt, role="CLARIFY"):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['prompts']
+    if role == "CLARIFY":
+        existing_role = projects_collection.find_one({"role": role})
+        if existing_role:
+            try:
+                result = projects_collection.update_one(
+                    {"role": role},
+                    {"$set": {
+                        "contextualize_q_system_prompt": contextualize_q_system_prompt,
+                        "qa_system_prompt": qa_system_prompt
+                    }}
+                )
+                if result.matched_count == 0:
+                    return {"error": "No document found with the given role", "code": 404}
+                if result.modified_count == 0:
+                    return {"error": "Prompt was not updated (it may already be up-to-date)", "code": 304}
+                return {"success": "Prompt updated successfully", "code": 200}
+            except Exception as e:
+                return {"error": "Failed to update prompt", "details": str(e), "code": 500}
+        else:
+            try:
+                projects_collection.insert_one({
+                    "role": role,
+                    "contextualize_q_system_prompt": contextualize_q_system_prompt,
+                    "qa_system_prompt": qa_system_prompt
+                })
+                return {"success": "Prompt added successfully", "code": 200}
+            except Exception as e:
+                return {"error": "Failed to add prompt", "details": str(e), "code": 500}
+    else:
+        return {"error": "Invalid role", "code": 400}
+    
+# -------------------------- AGENT DATABASE FUNCTIONS --------------------------
+def getPromptwithAgent(role):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['prompts']
+    if role == "CLARIFY":
+        existing_role = projects_collection.find_one({"role": role})
+        if existing_role:
+            return {
+                "contextualize_q_system_prompt": "".join(existing_role.get('contextualize_q_system_prompt', [])),
+                "qa_system_prompt": "".join(existing_role.get('qa_system_prompt', []))
+            }
+        else:
+            return {"error": "Prompt not found", "code": 404}
+    else:
+        return {"error": "Invalid role", "code": 400}
+
+
+def store_message(session_id, sender, content, input_token, output_token):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    message = {
+        "sender": sender,
+        "content": content,
+        "input_token": input_token,
+        "output_token": output_token,
+        "timestamp": datetime.now()
+    }
+    projects_collection.update_one(
+        {"session_id": session_id},
+        {"$push": {"messages": message}},
+        upsert=True
+    )
+
+# Function to get session history from MongoDB
+def get_session_history(session_id):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    session = projects_collection.find_one({"session_id": session_id})
+    history = ChatMessageHistory()
+    if session and "messages" in session:
+        for message in session["messages"]:
+            if message['sender'] == 'human':
+                history.add_message(HumanMessage(content=message['content']))
+            else:
+                history.add_message(AIMessage(content=message['content']))
+    return history
+
+def deleteSessionHistory(session_id):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    try:
+        projects_collection.delete_one({"session_id": session_id})
+        return {"success": "Session history deleted successfully", "code": 200}
+    except Exception as e:
+        return {"error": "Failed to delete session history", "details": str(e), "code": 500}
+
+        
         
 
 

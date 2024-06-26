@@ -5,7 +5,8 @@ from flask_cors import CORS
 from utils import handle_webhook, load_repository_contents, get_confluence_details, get_google_docs_details
 from dotenv import load_dotenv
 import os
-from database import connect_to_mongodb, addDataToMongoDB, checkLinkfromDatabase, getProjectListDatabase, getEpicListDatabase, getTicketListDatabase, getLinkfromDatabase
+from database import connect_to_mongodb, addDataToMongoDB, getProjectListDatabase, getEpicListDatabase, getTicketListDatabase, getLinkfromDatabase, setPromptwithAgent, deleteSessionHistory
+from agent import CLARIFY_AGENT
 
 load_dotenv()
 app = Flask(__name__)
@@ -16,7 +17,7 @@ def load_repository():
     github_url = request.args.get('githubLink')
     return load_repository_contents(github_url)
     
-    
+
 @app.route('/addToDatabase', methods=['POST'])
 def addToDatabase():
     data = request.json
@@ -81,7 +82,27 @@ def getLink():
     print(projectName, epicKey, ticketKey)
     return getLinkfromDatabase(projectName, epicKey, ticketKey)
 
+@app.route('/setPrompt', methods=['POST'])
+def setPrompt():
+    data = request.json
+    contextualize_q_system_prompt = data.get('contextualize_q_system_prompt')
+    qa_system_prompt = data.get('qa_system_prompt')
+    role = data.get('role')
+    return setPromptwithAgent(contextualize_q_system_prompt, qa_system_prompt, role)
 
+@app.route('/getClarify', methods=['GET'])
+def getClarify():
+    data = request.json
+    session_id = data.get('sessionId')
+    user_message = data.get('userMessage')
+    return CLARIFY_AGENT(session_id, user_message)
+
+@app.route('/deteleSessionId', methods=['POST'])
+def deleteSessionId():
+    sessionId = request.args.get('sessionId')
+    return deleteSessionHistory(sessionId)
+
+# ------------------------ TEST API ------------------------
 @app.route('/test', methods=['POST'])
 def webhook():
     data = request.json
@@ -91,6 +112,7 @@ def webhook():
     jiraLink = data.get('jiraLink') or None
     docsLink = data.get('docsLink') or None
     confluenceLink = data.get('confluenceLink') or None
+
 
     return handle_webhook(projectName, githubLink, jiraLink, docsLink, confluenceLink)
 
