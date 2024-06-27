@@ -255,11 +255,11 @@ def getLinkfromDatabase(projectName, epicKey = None, ticketKey = None):
 
 
 # ---------------------------- PROMPT WITH AGENT ----------------------------
-def setPromptwithAgent(contextualize_q_system_prompt, qa_system_prompt, role="CLARIFY"):
+def setPromptwithAgent(contextualize_q_system_prompt, qa_system_prompt, role):
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
     projects_collection = db['prompts']
-    if role == "CLARIFY":
+    if role == "CLARIFY" or role == "CHAT" or role == "SUGGESTION":
         existing_role = projects_collection.find_one({"role": role})
         if existing_role:
             try:
@@ -295,7 +295,7 @@ def getPromptwithAgent(role):
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
     projects_collection = db['prompts']
-    if role == "CLARIFY":
+    if role == "CLARIFY" or role == "CHAT" or role == "SUGGESTION":
         existing_role = projects_collection.find_one({"role": role})
         if existing_role:
             return {
@@ -319,8 +319,9 @@ def store_message(session_id, sender, content, input_token, output_token):
         "output_token": output_token,
         "timestamp": datetime.now()
     }
+
     projects_collection.update_one(
-        {"session_id": session_id},
+        {"sessionID": session_id},
         {"$push": {"messages": message}},
         upsert=True
     )
@@ -330,33 +331,78 @@ def get_session_history(session_id):
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
     projects_collection = db['history']
-    session = projects_collection.find_one({"session_id": session_id})
-    history = ChatMessageHistory()
-    if session and "messages" in session:
-        for message in session["messages"]:
-            if message['sender'] == 'human':
-                history.add_message(HumanMessage(content=message['content']))
-            else:
-                history.add_message(AIMessage(content=message['content']))
-    return history
+    session = projects_collection.find_one({"sessionID": session_id})
+    try:
+        history = ChatMessageHistory()
+        if session and "messages" in session:
+            for message in session["messages"]:
+                if message['sender'] == 'human':
+                    history.add_message(HumanMessage(content=message['content']))
+                else:
+                    history.add_message(AIMessage(content=message['content']))
+        return history
+    except Exception as e:
+        return {"error": "Failed to get session history", "details": str(e), "code": 500}
 
 def deleteSessionHistory(session_id):
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
     projects_collection = db['history']
     try:
-        projects_collection.delete_one({"session_id": session_id})
+        projects_collection.delete_one({"sessionID": session_id})
         return {"success": "Session history deleted successfully", "code": 200}
     except Exception as e:
         return {"error": "Failed to delete session history", "details": str(e), "code": 500}
 
-        
-        
-
-
+def insertClarifyQuestionHistory(formatted_questions):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    try:
+        for question in formatted_questions:
+            projects_collection.insert_one(question)
+        return {"success": "Clarify questions added successfully", "code": 200}
+    except Exception as e:
+        return {"error": "Failed to add clarify questions", "details": str(e), "code": 500}
     
-
-
-
+def deleteClarifyQuestionHistory(sessionId, project_name, epic_key, ticket_key = None, url = None):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    try:
+        projects_collection.delete_one({"sessionID": sessionId, "project_name": project_name, "epic_key": epic_key, "ticket_key": ticket_key, "url": url})
+        return {"success": "Clarify question deleted successfully", "code": 200}
+    except Exception as e:
+        return {"error": "Failed to delete clarify question", "details": str(e), "code": 500}
     
-        
+def getClarifyQuestionHistory(sessionId, project_name, epic_key, ticket_key = None, url = None):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    try:
+        clarify_question = projects_collection.find_one({"sessionID": sessionId, "project_name": project_name, "epic_key": epic_key, "ticket_key": ticket_key, "url": url})
+        return clarify_question.get('question')
+    except Exception as e:
+        return {"error": "Failed to get clarify question", "details": str(e), "code": 500}
+# --------------------- GET LINK DETAILS FROM DATABASE ---------------------
+'''
+This supports only Confluence links in Epic and Ticket description for now
+'''
+def getDetailsfromDatabase(project_name, epic_key, ticket_key = None, url = None):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['projects']
+    try:
+        project = projects_collection.find_one({"project_name": project_name})
+        epic = next((epic for epic in project.get('issues', []) if epic.get('key') == epic_key), None)
+        if ticket_key is not None:
+            ticket = next((ticket for ticket in epic.get('tasks', []) if ticket.get('key') == ticket_key), None)
+            return {"content": ticket.get('description', []), "title": ticket.get('summary', [])} if ticket is not None else {"error": "Ticket not found in the epic", "code": 404}
+        elif url is not None:
+            data = next((link for link in epic.get('source', {}).get('confluence', []) if link.get('url') == url), None)
+            return {"content": data.get('content', []), "title": data.get('title', [])} if data is not None else {"error": "Link not found in the epic", "code": 404}
+    except Exception as e:
+        return {"error": "Failed to get details from database (database is not available)", "details": str(e), "code": 500}
+            
+    return None
+

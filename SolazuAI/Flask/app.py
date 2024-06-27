@@ -5,8 +5,8 @@ from flask_cors import CORS
 from utils import handle_webhook, load_repository_contents, get_confluence_details, get_google_docs_details
 from dotenv import load_dotenv
 import os
-from database import connect_to_mongodb, addDataToMongoDB, getProjectListDatabase, getEpicListDatabase, getTicketListDatabase, getLinkfromDatabase, setPromptwithAgent, deleteSessionHistory
-from agent import CLARIFY_AGENT
+from database import connect_to_mongodb, addDataToMongoDB, getProjectListDatabase, getEpicListDatabase, getTicketListDatabase, getLinkfromDatabase, setPromptwithAgent, deleteSessionHistory, getClarifyQuestionHistory
+from agent import CLARIFY_AGENT, CHAT_AGENT, SUGGESTION_AGENT
 
 load_dotenv()
 app = Flask(__name__)
@@ -17,7 +17,7 @@ def load_repository():
     github_url = request.args.get('githubLink')
     return load_repository_contents(github_url)
     
-
+# Sua lai neu trung ten thi khong load database nua
 @app.route('/addToDatabase', methods=['POST'])
 def addToDatabase():
     data = request.json
@@ -37,7 +37,6 @@ def addToDatabase():
 def getProjectList():
     return getProjectListDatabase()
 
-
 @app.route('/getEpicsList', methods=['POST'])
 def getEpicsList():
     projectName = request.args.get('projectName')
@@ -46,7 +45,7 @@ def getEpicsList():
     return getEpicListDatabase(projectName)
 
 
-@app.route('/getTicketsList', methods=['POST'])
+@app.route('/getTicketsList', methods=['GET'])
 def getTicketList():
     projectName = request.args.get('projectName')
     epicKey = request.args.get('epicKey')
@@ -71,7 +70,7 @@ def getContent():
         return jsonify({"error": "Invalid category"}), 400
     
     
-@app.route('/getLink', methods=['GET'])
+@app.route('/getLink', methods=['POST'])
 def getLink():
     data = request.json
     projectName = data.get('projectName')
@@ -95,7 +94,30 @@ def getClarify():
     data = request.json
     session_id = data.get('sessionId')
     user_message = data.get('userMessage')
-    return CLARIFY_AGENT(session_id, user_message)
+    project_name = data.get('projectName')
+    epic_key = data.get('epicKey')
+    ticket_key = data.get('ticketKey') or None
+    url = data.get('url') or None
+    return CHAT_AGENT(session_id, user_message, project_name, epic_key, ticket_key=ticket_key, url=url)
+
+@app.route('/getSuggestion', methods=['POST'])
+def getSugesstion():
+    data = request.json
+    session_id = data.get('sessionId')
+    project_name = data.get('projectName')
+    epic_key = data.get('epicKey')
+    ticket_key = data.get('ticketKey') or None
+    url = data.get('url') or None
+    return SUGGESTION_AGENT(session_id, project_name, epic_key, ticket_key=ticket_key, url=url)
+
+@app.route('/getQuestion', methods=['POST'])
+def getQuestion():
+    data = request.json
+    project_name = data.get('projectName')
+    epic_key = data.get('epicKey')
+    ticket_key = data.get('ticketKey') or None
+    url = data.get('url') or None
+    return CLARIFY_AGENT(project_name, epic_key, ticket_key=ticket_key, url=url)
 
 @app.route('/deteleSessionId', methods=['POST'])
 def deleteSessionId():
@@ -114,6 +136,7 @@ def webhook():
     confluenceLink = data.get('confluenceLink') or None
 
     return handle_webhook(projectName, githubLink, jiraLink, docsLink, confluenceLink)
+
 
 if __name__ == "__main__":
     connect_to_mongodb()
