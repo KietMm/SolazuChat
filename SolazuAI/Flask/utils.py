@@ -3,9 +3,7 @@ import os
 from jira import JIRA
 import googleapiclient.discovery as discovery
 from httplib2 import Http
-from oauth2client import client
-from oauth2client import file
-from oauth2client import tools
+from oauth2client import client, file, tools
 from atlassian import Confluence
 from dotenv import load_dotenv
 from flask import jsonify
@@ -140,9 +138,6 @@ def get_google_docs_details(url):
     except Exception as e:
         return {"error": "Failed to fetch Google Docs details", "details": str(e)}
     
-
-
-
 # ---------------------------- HANDLE WEBHOOK ----------------------------
 
 def addLinks(link_data):
@@ -202,7 +197,7 @@ def handle_webhook(projectName, githubLink = None, jiraLink = None, confluenceLi
     try:
         jira = JIRA(options=jiraOptions, basic_auth=(os.getenv('JIRA_USERNAME'), os.getenv('JIRA_API_TOKEN')))
     except Exception as e:
-        return jsonify({"error": "Failed to authenticate with JIRA", "details": str(e)}), 403
+        return {"error": "Failed to authenticate with JIRA", "details": str(e)}
 
     issues = []
     epics = {}
@@ -256,5 +251,4 @@ def handle_webhook(projectName, githubLink = None, jiraLink = None, confluenceLi
         }
         return result
     except Exception as e:
-        return jsonify({"error": "Failed to fetch issues from JIRA", "details": str(e)}), 500
-    
+        return {"error": "Failed to fetch issues from JIRA", "details": str(e)}

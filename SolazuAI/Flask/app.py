@@ -5,7 +5,7 @@ from flask_cors import CORS
 from utils import handle_webhook, load_repository_contents, get_confluence_details, get_google_docs_details
 from dotenv import load_dotenv
 import os
-from database import connect_to_mongodb, addDataToMongoDB, checkLinkfromDatabase, getProjectListDatabase, getEpicListDatabase, getTicketListDatabase, getLinkfromDatabase
+from database import connect_to_mongodb, addDataToMongoDB, getProjectListDatabase, getEpicListDatabase, getTicketListDatabase, getLinkfromDatabase
 
 load_dotenv()
 app = Flask(__name__)
@@ -35,6 +35,16 @@ def addToDatabase():
 @app.route('/getProjectsList', methods=['GET'])
 def getProjectList():
     return getProjectListDatabase()
+
+@app.route('/getEpicsByProjectName', methods=['GET'])
+def getEpicsByProjectName():
+    project_name = request.args.get('projectName')
+    if not project_name:
+        return jsonify({"error": "Project name is required"}), 400
+    epics = getEpicListDatabase(project_name)
+    return jsonify(epics)
+
+
 
 
 @app.route('/getEpicsList', methods=['GET'])
@@ -70,7 +80,7 @@ def getContent():
         return jsonify({"error": "Invalid category"}), 400
     
     
-@app.route('/getLink', methods=['GET'])
+@app.route('/getLink', methods=['POST'])
 def getLink():
     data = request.json
     projectName = data.get('projectName')

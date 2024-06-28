@@ -2,6 +2,10 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import os
 from dotenv import load_dotenv
+
+
+
+
 from flask import jsonify
 from datetime import datetime
 
@@ -22,7 +26,7 @@ def connect_to_mongodb():
 # ----------------- ADD DATA TO DATABASE -----------------
 
 def addDataToMongoDB(data):
-    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    mongo_client = MongoClient(os.getenv('URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     
@@ -45,7 +49,7 @@ def addDataToMongoDB(data):
 # ----------------- UPDATE DATA IN DATABASE -----------------
 
 def updateData(projectName, newData):
-    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    mongo_client = MongoClient(os.getenv('URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     
@@ -62,7 +66,7 @@ def updateData(projectName, newData):
             return {"error": "No document found with the given project name", "code": 404}
         if result.modified_count == 0:
             # Document was found but no new data was modified
-            return {"error": "Data was not updated (it may already be up-to-date)", "code": 304}
+            return {"success": "Data was not updated (it may already be up-to-date)", "code": 304}
         
         return {"success": "Data updated in MongoDB successfully", "code": 200}
     except Exception as e:
@@ -72,7 +76,7 @@ def updateData(projectName, newData):
 # ----------------- GET PROJECT LIST FROM DATABASE -----------------
 
 def getProjectListDatabase():
-    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    mongo_client = MongoClient(os.getenv('URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     project_list = projects_collection.distinct("project_name")
@@ -81,16 +85,17 @@ def getProjectListDatabase():
 # ----------------- GET EPIC LIST FROM DATABASE -----------------
 
 def getEpicListDatabase(projectName):
-    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    mongo_client = connect_to_mongodb()
     db = mongo_client['project_db']
     projects_collection = db['projects']
     project = projects_collection.find_one({"project_name": projectName}, {"issues": 1})
-    
+
     if not project:
-        return None
-    
+        return jsonify({"error": "No project found"}), 404
+
     issues = project.get('issues', [])
-    epics = [{'name':issue.get('summary'), 'key': issue.get('key')} for issue in issues if issue.get('issue_type') == 'Epic']
+    epics = [{'name': issue.get('summary'), 'key': issue.get('key')} for issue in issues if issue.get('issue_type') == 'Epic']
+
     result = {
         "project_name": projectName,
         "epics": epics
@@ -98,10 +103,14 @@ def getEpicListDatabase(projectName):
     
     return jsonify(result)
 
+
+
+
+
 # ----------------- GET TICKET LIST FROM DATABASE -----------------
 
 def getTicketListDatabase(projectName, epicKey):
-    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    mongo_client = MongoClient(os.getenv('URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     
@@ -184,7 +193,7 @@ def getTicketListDatabase(projectName, epicKey):
 
 def getLinkfromDatabase(projectName, epicKey = None, ticketKey = None):
 
-    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    mongo_client = MongoClient(os.getenv('URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     result = []

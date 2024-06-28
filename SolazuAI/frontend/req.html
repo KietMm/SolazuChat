@@ -49,31 +49,24 @@
           <h2>Product Requirements Document (PRD) for "Chat Solazu"</h2>
         </div>
       </div>
-      <div class="question">
+      <div class="question" id="question">
         <h2>jsnjdssjncsdjcnj</h2>
-        <button class="question2" onclick="toggleDivs('question')">
-          Reply
-        </button>
+        <button class="reply" id="reply">Reply</button>
+        <button class="resolve">Resolve</button>
       </div>
-      <div class="chat-container">
+      <div class="hidden" id="chat-container">
         <div class="chat-header">
-          <h3>Chat</h3>
-          <button
-            class="close-button"
-            onclick="toggleDivs('chat-container'); closeChat()"
-          >
-            ✖
-          </button>
+          <h2>Chat Solazu</h2>
+          <button class="Back" id="Back">Back</button>
         </div>
-        <div id="chat-window" class="chat-window"></div>
-        <div class="chat-input-container">
-          <input
-            type="text"
-            id="message-input"
-            placeholder="Type your message here..."
-            onkeypress="if(event.keyCode === 13) sendMessage()"
-          />
-          <button onclick="sendMessage()">Send</button>
+        <div class="chat-messages" id="chat-messages">
+          <div class="message bot-message">
+            <p>Solazu</p>
+          </div>
+        </div>
+        <div class="chat-input">
+          <input type="text" id="message-input" placeholder="Ask me anything" />
+          <button id="send-button">Send</button>
         </div>
       </div>
     </div>
