@@ -37,7 +37,8 @@ def addToDatabase():
 def getProjectList():
     return getProjectListDatabase()
 
-@app.route('/getEpicsList', methods=['POST'])
+
+@app.route('/getEpicsList', methods=['GET'])
 def getEpicsList():
     projectName = request.args.get('projectName')
     if projectName is None:
@@ -68,7 +69,6 @@ def getContent():
         return load_repository_contents(link)
     else:
         return jsonify({"error": "Invalid category"}), 400
-    
     
 @app.route('/getLink', methods=['POST'])
 def getLink():

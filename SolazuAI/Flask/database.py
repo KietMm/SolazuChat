@@ -58,6 +58,11 @@ def updateData(projectName, newData):
 
     try:
         # Update the existing project with the new data
+        data = projects_collection.find_one({"project_name": projectName})
+        newData['github_link'] = data.get('github_link', []) + newData.get('github_link', [])
+        newData['jira_link'] = data.get('jira_link', []) + newData.get('jira_link', [])
+        newData['docs_link'] = data.get('docs_link', []) + newData.get('docs_link', [])
+        newData['confluence_link'] = data.get('confluence_link', []) + newData.get('confluence_link', [])
         result = projects_collection.update_one({"project_name": projectName}, {"$set": newData})
         if result.matched_count == 0:
             # No document matched the query to update
