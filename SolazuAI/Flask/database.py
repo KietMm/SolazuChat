@@ -6,6 +6,7 @@ from flask import jsonify
 from datetime import datetime
 from langchain.schema import HumanMessage, AIMessage
 from langchain_community.chat_message_histories import ChatMessageHistory
+from markdownify import markdownify as md
 
 load_dotenv()
 
@@ -348,6 +349,24 @@ def get_session_history(session_id):
         return history
     except Exception as e:
         return {"error": "Failed to get session history", "details": str(e), "code": 500}
+    
+def get_session_history_api(session_id):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    session = projects_collection.find_one({"sessionID": session_id})
+    try:
+        history = []
+        if session and "messages" in session:
+            for message in session["messages"]:
+                if message['sender'] == 'human':
+                    history.append({"Human": message['content']})
+                else:
+                    history.append({"Agent": message['content']})
+        return history
+    except Exception as e:
+        return {"error": "Failed to get session history", "details": str(e), "code": 500}
+    
 
 def deleteSessionHistory(session_id):
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
@@ -358,6 +377,16 @@ def deleteSessionHistory(session_id):
         return {"success": "Session history deleted successfully", "code": 200}
     except Exception as e:
         return {"error": "Failed to delete session history", "details": str(e), "code": 500}
+    
+def checkSessionHistory(project_name, epic_key, ticket_key = None, url = None):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    try:
+        clarify_question = projects_collection.find_one({"project_name": project_name, "epic_key": epic_key, "ticket_key": ticket_key, "url": url})
+        return clarify_question is not None
+    except Exception as e:
+        return {"error": "Failed to get clarify question", "details": str(e), "code": 500}
 
 def insertClarifyQuestionHistory(formatted_questions):
     mongo_client = MongoClient(os.getenv('MONGODB_URI'))
@@ -389,6 +418,23 @@ def getClarifyQuestionHistory(sessionId, project_name, epic_key, ticket_key = No
         return clarify_question.get('question')
     except Exception as e:
         return {"error": "Failed to get clarify question", "details": str(e), "code": 500}
+    
+def getAllClarifyQuestionHistory(project_name, epic_key, ticket_key = None, url = None):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    filter_query = {
+        'project_name': project_name,
+        'epic_key': epic_key
+    }
+    if ticket_key is not None:
+        filter_query['ticket_key'] = ticket_key
+    if url is not None:
+        filter_query['url'] = url
+
+    questions = list(projects_collection.find(filter_query, {'_id': 0}))
+    response = jsonify(questions)
+    return response
 # --------------------- GET LINK DETAILS FROM DATABASE ---------------------
 '''
 This supports only Confluence links in Epic and Ticket description for now
@@ -410,4 +456,18 @@ def getDetailsfromDatabase(project_name, epic_key, ticket_key = None, url = None
         return {"error": "Failed to get details from database (database is not available)", "details": str(e), "code": 500}
             
     return None
+
+def setStatusQuestion(session_id, status):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    try:
+        result = projects_collection.update_one({"sessionID": session_id}, {"$set": {"status": status}})
+        if result.matched_count == 0:
+            return {"error": "No document found with the given sessionID", "code": 404}
+        if result.modified_count == 0:
+            return {"success": "Status was not updated (it may already be up-to-date)", "code": 304}
+        return {"success": "Status updated successfully", "code": 200}
+    except Exception as e:
+        return {"error": "Failed to update question status", "details": str(e), "code": 500}
 

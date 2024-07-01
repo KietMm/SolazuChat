@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: rgb(255, 255, 255);
+  box-sizing: border-box;
+  height: 100vh;
+  max-height: 100vh;
+}
+
+.promptManager{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.promptManager .heading{
+    width: 100%;
+    height: 10%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 8px solid rgb(242, 242, 242);
+}
+
+.promptManager .heading h1{
+    color: #6d31ed;
+    font-size: 30px;
+    text-align: center;
+    padding: 10px;
+    font-weight: 600;
+}
+
+.promptManager .prompt{
+    width: 90%;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+    margin-left: 5%;
+}
+
+.promptManager .prompt .selection{
+    height: 10%;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.promptManager .prompt select{
+    width: 15%;
+    background-color: transparent;
+    border: none;
+    padding: 10px;
+    color: black;
+    height: fit-content;
+    border-bottom: 1px solid #9e7aed;
+}
+
+.promptManager .prompt span{
+    color: #6d31ed;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 10px;
+    background-color: #ede4ff;
+    border-radius: 5px;
+}
+
+.promptManager .prompt select:focus-visible{
+    outline: none;
+}
+
+.promptManager .prompt .display{
+    width: 100%;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.promptManager .prompt .display .description{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.promptManager .prompt .display .description h2{
+    color: rgb(255, 255, 255);
+    font-size: 20px;
+    font-weight: 600;
+    padding: 8px;
+    margin-left: 1%;
+    background-color: #7c3fff;
+    border-top-left-radius: 5px;
+     border-top-right-radius: 5px;
+}
+
+.promptManager .prompt .display .description li{
+    color: rgb(0, 0, 0);
+    font-size: 15px;
+    padding: 5px;
+    font-style: italic;
+    margin-left: 1%;
+    background-color: #f2ecff;
+    list-style-type: disc;
+    border-right: 1px solid #7636ff;
+    border-left: 1px solid #7636ff;
+}
+
+.promptManager .prompt .display .description li:last-child{
+    color: rgb(0, 0, 0);
+    font-size: 15px;
+    padding: 5px;
+    font-style: italic;
+    margin-left: 1%;
+    background-color: #f2ecff;
+    list-style-type: disc;
+    border-right: 1px solid #7636ff;
+    border-left: 1px solid #7636ff;
+    border-bottom: 1px solid #7636ff;
+}
+
+.promptManager .prompt textarea{
+    width: 80%;
+    min-height: 18%;
+    max-height: 300px;
+    background: transparent;
+    color: rgb(0, 0, 0);
+    border: 1px solid rgb(0, 0, 0);
+    font-size: 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    resize: none;
+    margin-bottom: 20px;
+    margin-top: 30px;
+    padding: 10px;
+}
+
+.promptManager .prompt button{
+    width: 10%;
+    height: 40px;
+    background: rgb(220, 204, 255);
+    color:#6d31ed;
+    font-size: 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    font-weight: 600;
+    transition: 0.5s all ease;
+}
+
+
+.promptManager .prompt button:hover{
+    background: #6d31ed;
+    color: rgb(255, 255, 255);
+    font-weight: 600;
+    transform: 0.5s all ease;
+}

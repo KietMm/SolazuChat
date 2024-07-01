@@ -14,19 +14,15 @@
     <div class="container">
       <!-- Sidebar -->
       <aside class="sidebar">
-        <div class="sidebar-item ask" id="askButton" onclick="askbutton">
+        <div class="sidebar-item ask" id="askButton">
           <i class="ri-question-line"></i>
           <span>Ask</span>
         </div>
-        <div class="sidebar-item req" id="reqButton" onclick="reqButton">
+        <div class="sidebar-item req" id="reqButton">
           <i class="ri-file-list-line"></i>
           <span>Req</span>
         </div>
-        <div
-          class="sidebar-item portal active"
-          id="portalButton"
-          onclick="portalButton"
-        >
+        <div class="sidebar-item portal" id="portalButton">
           <i class="ri-folder-upload-line"></i>
           <span>Portal</span>
         </div>
@@ -37,75 +33,83 @@
 
       <!-- Main Content -->
       <main class="main-content">
-        <div id="ask" class="content-section">
-          <!-- Add content specific to Ask page here -->
-        </div>
-        <div id="req" class="content-section">
-          <!-- Add content specific to Req page here -->
-        </div>
-        <div id="portal" class="content-section">
-          <h1>Portal - Create & Update Dataset</h1>
+        <h1>Portal - Create & Update Dataset</h1>
 
-          <!-- Steps -->
-          <div class="steps">
-            <div class="step">
+        <!-- Steps -->
+        <div class="step-container">
+          <div class="row">
+            <div class="column">
               <h2>
                 Step 1: Select existing projects and epics to update or to
                 create new one
               </h2>
-              <div class="selectors">
-                <select class="select-project">
+              <div class="selection-row">
+                <select id="projectSelect" class="selection-dropdown">
                   <option>Select project</option>
-                  <option>AJET</option>
-                  <option>BJET</option>
                 </select>
-                <select class="select-epic">
-                  <option>Select epic</option>
-                  <option>AJET - 1234</option>
-                  <option>AJET - 5678</option>
+                <select id="epicSelect" class="selection-dropdown">
+                  <option>Select epics</option>
+                </select>
+                <select id="ticketSelect" class="selection-dropdown">
+                  <option>Select ticket</option>
+                  <option value="new">+ Add new ticket</option>
                 </select>
               </div>
             </div>
-            <div class="step">
+            <div class="column">
               <h2>Step 2: Input your data</h2>
-              <div class="data-inputs">
-                <input type="text" placeholder="Github" />
-                <input type="text" placeholder="Jira/Confluence" />
-                <button class="submit-button">Submit</button>
+              <div class="input-row">
+                <div class="tabs">
+                  <div
+                    class="tab active"
+                    id="jiraTab"
+                    onclick="showTab('jira')"
+                  >
+                    Jira
+                  </div>
+                  <div
+                    class="tab"
+                    id="confluenceTab"
+                    onclick="showTab('confluence')"
+                  >
+                    Confluence
+                  </div>
+                  <div class="tab" id="docsTab" onclick="showTab('docs')">
+                    Docs
+                  </div>
+                  <div class="tab" id="gitTab" onclick="showTab('git')">
+                    Git
+                  </div>
+                </div>
+              </div>
+              <div class="input-container" id="inputContainer">
+                <input
+                  type="text"
+                  class="link-input"
+                  id="inputLink"
+                  placeholder="Input your link"
+                />
+              </div>
+              <div class="button-container">
+                <button class="add-button" id="addInputButton">+</button>
+                <button class="submit-button" id="submitButton">Submit</button>
               </div>
             </div>
           </div>
-
-          <!-- Dataset List -->
-          <table class="dataset-table">
-            <thead>
-              <tr>
-                <th>File name</th>
-                <th>Date</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><a href="#">https://github.com/topics/ajet-portal</a></td>
-                <td>18/01/2022</td>
-                <td class="status fail">Fail</td>
-              </tr>
-              <tr>
-                <td><a href="#">https://jira.solazu.net/browse/AJ-14</a></td>
-                <td>23/07/2022</td>
-                <td class="status in-process">In process</td>
-              </tr>
-              <tr>
-                <td>
-                  <a href="#">https://www.atlassian.com/software/confluence</a>
-                </td>
-                <td>12/02/2020</td>
-                <td class="status success">Success</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
+        <!-- Dataset List -->
+        <table class="dataset-table">
+          <thead>
+            <tr>
+              <th>File name</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="datasetTableBody">
+            <!-- Dynamic content will be added here -->
+          </tbody>
+        </table>
       </main>
     </div>
 

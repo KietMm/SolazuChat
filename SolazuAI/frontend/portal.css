@@ -18,7 +18,7 @@ html {
 }
 /* Sidebar */
 .sidebar {
-  width: 80px;
+  width: 80px !important;
   background-color: #fff;
   display: flex;
   flex-direction: column;
@@ -75,64 +75,117 @@ html {
   margin-bottom: 20px;
   color: #4f46e5;
 }
+.main-content h2 {
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: #161618;
+}
 
 /* Steps */
-.steps {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.step-container {
   margin-bottom: 20px;
 }
 
-.step {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.step h2 {
-  font-size: 18px;
-  color: #374151;
-  margin-bottom: 10px;
-}
-
-.selectors {
+.row {
   display: flex;
-  gap: 10px;
+  flex-direction: row;
+  gap: 20px;
 }
 
-.selectors select {
-  padding: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 5px;
+.column {
   flex: 1;
 }
 
-.data-inputs {
+.selection-row {
   display: flex;
+  justify-content: space-between;
   gap: 10px;
+}
+
+.selection-dropdown {
+  margin-top: 39px;
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.input-row {
+  display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-.data-inputs input {
+.tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.tab {
   padding: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 5px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  text-align: center;
+}
+
+.tab.active {
+  background-color: #f0f0ff;
+  border-bottom: 2px solid #8000ff;
+  font-weight: bold;
+  color: #8000ff;
+}
+
+.input-container {
   flex: 1;
+  max-width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.link-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.button-container {
+  flex-shrink: 0;
+}
+
+.add-button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #8000ff;
+  background-color: transparent;
+  color: #8000ff;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background-color: #f0f0ff;
 }
 
 .submit-button {
-  padding: 10px 20px;
-  background-color: #4f46e5;
-  color: white;
+  display: block;
+  margin: 10px auto;
+  padding: 10px 30px;
+  font-size: 18px;
   border: none;
+  background-color: #8000ff;
+  color: white;
   border-radius: 5px;
   cursor: pointer;
 }
 
 .submit-button:hover {
-  background-color: #3b3ac8;
+  color: #ffffffff; /* white */
+  background: #5113d7ff;
+}
+.submit-button:hover:active {
+  color: #ffffffff; /* white */
+  background: #5113d7ff;
 }
 
 /* Dataset Table */
@@ -196,6 +249,7 @@ html {
   }
 
   .sidebar {
+    width: 80px !important;
     flex-direction: row;
     width: 100%;
     justify-content: space-around;

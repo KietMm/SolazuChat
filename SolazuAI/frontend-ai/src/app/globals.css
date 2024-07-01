@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  max-height: 100vh;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+div{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+div .nav{
+  width: 5%;
+  background-color: #f8f9fa;
+}
+
+nav{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+div .nav button{
+  width: 80%;
+  background-color: transparent;
+  color: #565d6d;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 15px;
+  transition: 0.5s all ease;
+  margin-bottom: 20px;
+}
+
+
+div .nav button .img{
+  font-size: 30px;
+}
+
+div .nav button:hover{
+  background-color: #f5f1fe;
+  color: #6d31ed;
+  transition: 0.5s all ease; 
+}
+
+div .nav button.active{
+  background-color: #f5f1fe;
+  color: #6d31ed;
+  transition: 0.5s all ease; 
+}
+
+div .layout{
+  width: 95%;
+  height: 100vh;
+}
+

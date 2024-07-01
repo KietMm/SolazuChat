@@ -5,7 +5,7 @@ from flask_cors import CORS
 from utils import handle_webhook, load_repository_contents, get_confluence_details, get_google_docs_details
 from dotenv import load_dotenv
 import os
-from database import connect_to_mongodb, addDataToMongoDB, getProjectListDatabase, getEpicListDatabase, getTicketListDatabase, getLinkfromDatabase, setPromptwithAgent, deleteSessionHistory, getClarifyQuestionHistory
+from database import connect_to_mongodb, addDataToMongoDB, getProjectListDatabase, getEpicListDatabase, getTicketListDatabase, getLinkfromDatabase, setPromptwithAgent, deleteSessionHistory, getDetailsfromDatabase, getAllClarifyQuestionHistory, get_session_history_api, getPromptwithAgent, setStatusQuestion
 from agent import CLARIFY_AGENT, CHAT_AGENT, SUGGESTION_AGENT
 
 load_dotenv()
@@ -55,20 +55,15 @@ def getTicketList():
         return jsonify({"error": "Project name is required"}), 400
     return getTicketListDatabase(projectName, epicKey)
 
-
-@app.route('/getContentData', methods=['GET'])
+@app.route('/getContentData', methods=['POST'])
 def getContent():
-    link = request.args.get('link')
-    category = request.args.get('category')
-    
-    if category == "Confluence":
-        return get_confluence_details(link)
-    elif category == "Docs":
-        return get_google_docs_details(link)
-    elif category == "Github":
-        return load_repository_contents(link)
-    else:
-        return jsonify({"error": "Invalid category"}), 400
+    data = request.json
+    project_name = data.get('projectName')
+    epic_key = data.get('epicKey')
+    ticket_key = data.get('ticketKey') or None
+    url = data.get('url') or None
+
+    return jsonify(getDetailsfromDatabase(project_name, epic_key, ticket_key, url))
     
 @app.route('/getLink', methods=['POST'])
 def getLink():
@@ -80,14 +75,6 @@ def getLink():
     ticketKey = data.get('ticketKey') or None
     print(projectName, epicKey, ticketKey)
     return getLinkfromDatabase(projectName, epicKey, ticketKey)
-
-@app.route('/setPrompt', methods=['POST'])
-def setPrompt():
-    data = request.json
-    contextualize_q_system_prompt = data.get('contextualize_q_system_prompt')
-    qa_system_prompt = data.get('qa_system_prompt')
-    role = data.get('role')
-    return setPromptwithAgent(contextualize_q_system_prompt, qa_system_prompt, role)
 
 @app.route('/getClarify', methods=['POST'])
 def getClarify():
@@ -111,7 +98,7 @@ def getSugesstion():
     return SUGGESTION_AGENT(session_id, project_name, epic_key, ticket_key=ticket_key, url=url)
 
 @app.route('/getQuestion', methods=['POST'])
-def getQuestion():
+def getQuestionfromAgent():
     data = request.json
     project_name = data.get('projectName')
     epic_key = data.get('epicKey')
@@ -119,11 +106,45 @@ def getQuestion():
     url = data.get('url') or None
     return CLARIFY_AGENT(project_name, epic_key, ticket_key=ticket_key, url=url)
 
+@app.route('/getQuestionfromDatabase', methods=['POST'])
+def getQuestionfromDatabase():
+    data = request.json
+    project_name = data.get('projectName')
+    epic_key = data.get('epicKey')
+    ticket_key = data.get('ticketKey') or None
+    url = data.get('url') or None
+    return getAllClarifyQuestionHistory(project_name, epic_key, ticket_key, url)
+
+@app.route('/getSessionHistory', methods=['GET'])
+def getSessionHistory():
+    session_id = request.args.get('sessionId')
+    return jsonify(get_session_history_api(session_id))
+
 @app.route('/deteleSessionId', methods=['POST'])
 def deleteSessionId():
     sessionId = request.args.get('sessionId')
     return deleteSessionHistory(sessionId)
 
+@app.route('/setPrompt', methods=['POST'])
+def setPrompt():
+    data = request.json
+    contextualize_q_system_prompt = data.get('contextualize_q_system_prompt')
+    qa_system_prompt = data.get('qa_system_prompt')
+    role = data.get('role')
+    return setPromptwithAgent(contextualize_q_system_prompt, qa_system_prompt, role)
+
+@app.route('/getPrompt', methods=['GET'])
+def getPrompt():
+    role = request.args.get('role')
+    return getPromptwithAgent(role)
+
+@app.route('/markResolved', methods=['POST'])
+def markResolved():
+    data = request.json
+    session_id = data.get('sessionID')
+    status = data.get('status')
+    return setStatusQuestion(session_id, status)
+      
 # ------------------------ TEST API ------------------------
 @app.route('/test', methods=['POST'])
 def webhook():

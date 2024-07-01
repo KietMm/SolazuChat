@@ -1,0 +1,484 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: black;
+  box-sizing: border-box;
+  height: 100vh;
+  max-height: 100vh;
+}
+
+.outer {
+  display: flex;
+  width: 100%;
+  background-color: rgb(39, 14, 91);
+  max-height: 100vh;
+}
+
+div .selectTicket {
+  width: 15%;
+  background-color: rgb(255, 255, 255);
+  border-left: 1px solid rgb(237, 237, 237);
+  border-right: 8px solid rgb(242, 242, 242);
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+    align-items: center;
+}
+
+div .selectTicket button{
+    width: 60%;
+    background-color: #6d31ed;
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 15px;
+    transition: 0.5s all ease;
+    margin-top: 20px;
+}
+
+div .selectTicket button:hover{
+    background-color: #6d31ed;
+    color: #ffffff;
+    transition: 0.5s all ease;
+}
+
+div .container {
+  width: 85%;
+  background-color: rgb(11, 11, 162);
+  display: flex;
+  flex-direction: column;
+}
+
+div .heading {
+  width: 100%;
+  height: 7%;
+  background-color: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-bottom: 8px solid rgb(242, 242, 242);
+}
+
+div .heading h1 {
+  color: #6d31ed;
+  text-align: center;
+  padding: 10px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+div .heading .img {
+  font-size: 30px;
+  color: #6d31ed;
+  margin-left: 10px;
+  font-weight: 600;
+}
+
+div .chat {
+  width: 100%;
+  height: 93%;
+  display: flex;
+}
+
+.chat .document {
+  width: 70%;
+  background-color: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: column;
+  border-right: 8px solid rgb(242, 242, 242);
+}
+
+.title {
+  width: 100%;
+  height: 5%;
+  max-height: 5%;
+  background-color: rgb(255, 255, 255);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.106);
+  justify-content: center;
+  align-items: center;
+}
+
+.doc {
+  width: 100%;
+  background-color: rgb(255, 255, 255);
+  color: black;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  text-align: justify;
+  overflow-y: auto;
+  min-height: 95%;
+}
+
+/* Style for paragraphs */
+.document .doc p {
+  margin-bottom: 15px;
+}
+
+/* Style for headings */
+.document .doc h1,
+.document .doc h2,
+.document .doc h3,
+.document .doc h4,
+.document .doc h5,
+.document .doc h6 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+/* Style for lists */
+.document .doc ul,
+.document .doc ol {
+  margin-bottom: 15px;
+  padding-left: 20px;
+}
+
+/* Style for list items */
+.document .doc li {
+  margin-bottom: 10px;
+  list-style-type: disc; /* Adds a dot before each <li> item */
+}
+
+/* Style for bold text */
+.document .doc strong {
+  font-weight: bold;
+}
+
+/* Style for inline code */
+.document .doc code {
+  background-color: #f5f5f5;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Style for tables */
+.document .doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+/* Style for table cells */
+.document .doc th,
+.document .doc td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+/* Style for table headers */
+.document .doc th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+/* Style for images */
+.document .doc img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 10px auto;
+}
+
+/* Style for links */
+.document .doc a {
+  color: #0073aa;
+  text-decoration: none;
+}
+
+/* Style for blockquotes */
+.document .doc blockquote {
+  border-left: 4px solid #ddd;
+  padding-left: 15px;
+  margin-left: 0;
+  color: #666;
+  font-style: italic;
+}
+
+/* Style for preformatted text */
+.document .doc pre {
+  background-color: #f5f5f5;
+  border-radius: 3px;
+  padding: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  white-space: pre-wrap; /* Maintains whitespace formatting */
+}
+
+
+.title h2 {
+  color: #000000;
+  text-align: center;
+  padding: 10px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.chat .question {
+  width: 30%;
+  max-height: 100%;
+}
+
+.question .clarify {
+  width: 100%;
+  background-color: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.clarify .clarifyHeading{
+  width: 90%;
+  height: 5%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  justify-content: center;
+  margin-left: 7%;
+}
+
+.clarify .clarifyHeading span{
+  font-size: 15px;
+  font-weight: 500;
+  color: black;
+}
+
+.clarify .clarifyHeading .arrow{
+  font-size: 20px;
+  color: black;
+}
+
+.clarify .clarifyHeading .arrow:hover{
+  color: #6d31ed;
+}
+
+.clarify .clarifyQuestion{
+  width: 100%;
+  height: 95%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.question .chatGPT{
+  width: 100%;
+  background-color: rgb(4, 3, 3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-height: 100%;
+}
+
+.question .chatGPT .button{
+    width: 100%;
+    background-color: white;
+    font-size: 25px;
+    color: black;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 10%;
+}
+
+.question .chatGPT .button button{
+    width: 10%;
+    font-size: 25px;
+    border-radius: 10px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: 0.5s all ease;
+    color: black;
+}
+
+.questionBox{
+    width: 90%;
+    border: 1.5px solid rgb(166, 163, 163);
+    background-color: transparent;
+    color: black;
+    font-weight: 500;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.questionBox.focused {
+  border: 2px solid #007BFF; /* Blue border for focused question */
+  box-shadow: 0 0 8px #007BFF; /* Optional: add a shadow for better visibility */
+}
+
+.buttonBox{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    margin-top: 20px;
+}
+
+.buttonBox .reply{
+    width: 25%;
+    background-color: #f5f1fe;
+    color: #6d31ed;
+    border-radius: 10px;
+    padding: 5px;
+    display: flex;
+    font-size: 15px;
+    flex-direction: column;
+    align-items: center;
+    transition: 0.5s all ease;
+}
+
+.buttonBox .reply:hover{
+    background-color: #8b5eeb;
+    color: #ffffff;
+    transition: 0.5s all ease;
+}
+
+.buttonBox .resolve{
+  color: #6d31ed;
+}
+
+.buttonBox div{
+    width: 75%;
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    align-items: center;
+    gap: 10px;
+}
+
+.buttonBox .checkmark{
+    color: green;
+    border-radius: 10px;
+    display: flex;
+    font-size: 20px;
+    transition: 0.5s all ease;
+}
+
+.warning{
+  background-color: red;
+    color: white;
+    border-radius: 10px;
+    padding: 2.5px;
+    display: flex;
+    font-size: 20px;
+    transition: 0.5s all ease;
+}
+
+.GPT{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+    height: 90%;
+}
+
+.chatHistory{
+    width: 98%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    height: 95%;
+}
+
+.message.Human {
+    max-width: 80%;
+    text-align: left;
+    color: rgb(0, 0, 0);
+    margin-left: 20%;
+    display: flex;
+    justify-content: end;
+    margin-top: 10px;
+    background-color: transparent;
+  }
+
+.message.Human div{
+    width: fit-content;
+    max-width: 100%;
+    border: 1.5px solid rgb(212, 212, 212);
+    padding: 5px;
+    border-radius: 10px;
+}
+
+.message.Human div img{
+    display: none;
+}
+
+  
+.message.Agent {
+    width: 80%;
+    text-align: left;
+    color: rgb(0, 0, 0);
+    margin-top: 10px;
+}
+
+.message.Agent div{
+    width: fit-content;
+    max-width: 100%;
+    padding: 5px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.message.Agent div img{
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+}
+
+.inputArea {
+    display: flex;
+    width: 90%;
+    flex-direction: row;
+    margin-bottom: 10px;
+    border: 1px solid #6d31ed;
+    border-radius: 10px;
+    margin-left: 5%;
+    margin-top: 10px;
+    padding: 5px;
+    align-items: center;
+    justify-content: center;
+}
+
+.inputArea .input {
+    width: 90%;
+    max-width: 90%;
+    background-color: #ffffff;
+    color: black;
+    margin-left: 10px;
+    margin-right: 10px;
+    border: none;
+    display: flex;
+    resize: none; /* Disable manual resizing */
+    overflow-y: auto;
+    line-height: 20px; /* Line height for text */
+    margin-top: 1%;
+}
+
+.inputArea .input:focus-visible {
+    outline: none; /* Remove focus outline */
+}
+
+.inputArea button {
+    width: 10%;
+    background-color: transparent;
+    font-size: 25px;
+    color: rgb(142, 142, 142);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+}
