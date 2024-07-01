@@ -38,10 +38,73 @@ document.addEventListener("DOMContentLoaded", function () {
     const ticketKey =
       ticketSelect.value !== "Select ticket" ? ticketSelect.value : null;
 
-    if (projectName && projectName !== "Select project") {
-      submitData(projectName, epicKey, ticketKey);
-    }
+    fetchLinks(projectName, epicKey, ticketKey);
   });
+  function fetchLinks(projectName, epicKey, ticketKey) {
+    console.log("fetchLinks called");
+
+    const requestData = {
+      projectName: projectName,
+      epicKey: epicKey,
+      ticketKey: ticketKey,
+    };
+
+    fetch(`http://127.0.0.1:5000/getLink`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestData),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Links fetched from server:", data);
+
+        const datasetTableBody = document.getElementById("datasetTableBody");
+        datasetTableBody.innerHTML = ""; // Clear any existing rows
+
+        if (data && data.length > 0 && data[0].links_status) {
+          data[0].links_status.forEach((item) => {
+            const row = document.createElement("tr");
+
+            const fileNameCell = document.createElement("td");
+            const fileNameLink = document.createElement("a");
+            fileNameLink.href = item.url;
+            fileNameLink.innerText = item.url;
+            fileNameCell.appendChild(fileNameLink);
+            row.appendChild(fileNameCell);
+
+            const dateCell = document.createElement("td");
+            dateCell.innerText = item.date;
+            row.appendChild(dateCell);
+
+            const statusCell = document.createElement("td");
+            statusCell.className = "status";
+            statusCell.innerText = item.status;
+            row.appendChild(statusCell);
+
+            datasetTableBody.appendChild(row);
+          });
+        } else {
+          console.error("links_status is undefined or empty:", data);
+          const noDataRow = document.createElement("tr");
+          const noDataCell = document.createElement("td");
+          noDataCell.colSpan = 3;
+          noDataCell.innerText = "No links available.";
+          noDataRow.appendChild(noDataCell);
+          datasetTableBody.appendChild(noDataRow);
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("Đã xảy ra lỗi khi lấy dữ liệu: " + error.message);
+      });
+  }
 
   // Xử lý sự kiện thay đổi project
   projectSelect.addEventListener(
@@ -364,60 +427,6 @@ function submitData(projectName, epicKey, ticketKey) {
     });
 }
 
-function fetchLinks(projectName, epicKey, ticketKey) {
-  console.log("fetchLinks called");
-
-  const requestData = {
-    projectName: projectName,
-    epicKey: epicKey,
-    ticketKey: ticketKey,
-  };
-
-  fetch(`http://127.0.0.1:5000/getLink`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(requestData),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Links fetched from server:", data);
-
-      const datasetTableBody = document.getElementById("datasetTableBody");
-      datasetTableBody.innerHTML = "";
-      if (data.length > 0 && data[0].links_status) {
-        data[0].links_status.forEach((item) => {
-          const row = document.createElement("tr");
-
-          const fileNameCell = document.createElement("td");
-          const fileNameLink = document.createElement("a");
-          fileNameLink.href = item.url;
-          fileNameLink.innerText = item.url;
-          fileNameCell.appendChild(fileNameLink);
-          row.appendChild(fileNameCell);
-
-          const dateCell = document.createElement("td");
-          dateCell.innerText = item.date;
-          row.appendChild(dateCell);
-
-          const statusCell = document.createElement("td");
-          statusCell.className = "status";
-          statusCell.innerText = item.status;
-          row.appendChild(statusCell);
-
-          datasetTableBody.appendChild(row);
-        });
-      } else {
-        console.error("links_status is undefined or empty");
-      }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      alert("Đã xảy ra lỗi khi lấy dữ liệu.");
-    });
-}
-
 // load epic và ticket khi chọn tên project
 
 document
@@ -444,9 +453,5 @@ document.getElementById("epicSelect").addEventListener("change", function () {
       "<option>Select ticket</option>";
   }
 });
-
-// thêm project
-// dữ liệu đang replay
-//ko add nhiều links
 
 //click submit mới xem được links

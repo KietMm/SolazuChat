@@ -195,7 +195,7 @@ html {
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
-  overflow: hidden;
+  overflow: auto !important;
 }
 
 .dataset-table thead th {
@@ -204,12 +204,14 @@ html {
   padding: 10px;
   color: #374151;
   border-bottom: 1px solid #d1d5db;
+  border-top: 1px solid #d1d5db;
 }
 
 .dataset-table tbody td {
   padding: 10px;
   color: #6b7280;
   border-bottom: 1px solid #d1d5db;
+  border-top: 1px solid #d1d5db;
 }
 
 .dataset-table tbody tr:last-child td {

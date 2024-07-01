@@ -3,7 +3,9 @@ import os
 from jira import JIRA
 import googleapiclient.discovery as discovery
 from httplib2 import Http
-from oauth2client import client, file, tools
+from oauth2client import client
+from oauth2client import file
+from oauth2client import tools
 from atlassian import Confluence
 from dotenv import load_dotenv
 from flask import jsonify
@@ -12,7 +14,7 @@ import re
 
 load_dotenv()
 
-# ---------------------------- FETCH GITHUB CONTENTS ----------------------------
+# ---------------------------- FETCH GITHUB CONTENTS BY LINK ----------------------------
 
 def fetch_directory_contents(url, headers):
     response = requests.get(url, headers=headers)
@@ -57,7 +59,7 @@ def load_repository_contents(github_url):
     else:
         return jsonify({'error': 'Failed to retrieve repository contents'})
 
-# ---------------------------- GET CONFLUENCE DETAILS ----------------------------
+# ---------------------------- GET CONFLUENCE DETAILS BY LINK ----------------------------
 def get_confluence_details(url):
     confluence = Confluence(
         url=os.getenv('CONFLUENCE_URL'),
@@ -82,7 +84,7 @@ def get_confluence_details(url):
         return {"error": "Failed to fetch Confluence page details", "details": str(e)}
 
 
-# ---------------------------- GET GOOGLE DOCS DETAILS --------------------------------
+# ---------------------------- GET GOOGLE DOCS DETAILS BY LINK --------------------------------
 def read_paragraph_element(element):
     """Returns the text in the given ParagraphElement."""
     text_run = element.get('textRun')
@@ -138,6 +140,7 @@ def get_google_docs_details(url):
     except Exception as e:
         return {"error": "Failed to fetch Google Docs details", "details": str(e)}
     
+
 # ---------------------------- HANDLE WEBHOOK ----------------------------
 
 def addLinks(link_data):
@@ -197,7 +200,7 @@ def handle_webhook(projectName, githubLink = None, jiraLink = None, confluenceLi
     try:
         jira = JIRA(options=jiraOptions, basic_auth=(os.getenv('JIRA_USERNAME'), os.getenv('JIRA_API_TOKEN')))
     except Exception as e:
-        return {"error": "Failed to authenticate with JIRA", "details": str(e)}
+        return jsonify({"error": "Failed to authenticate with JIRA", "details": str(e)}), 403
 
     issues = []
     epics = {}
@@ -251,4 +254,5 @@ def handle_webhook(projectName, githubLink = None, jiraLink = None, confluenceLi
         }
         return result
     except Exception as e:
-        return {"error": "Failed to fetch issues from JIRA", "details": str(e)}
+        return jsonify({"error": "Failed to fetch issues from JIRA", "details": str(e)}), 500
+    

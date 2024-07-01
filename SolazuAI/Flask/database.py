@@ -2,19 +2,17 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import os
 from dotenv import load_dotenv
-
-
-
-
 from flask import jsonify
 from datetime import datetime
+from langchain.schema import HumanMessage, AIMessage
+from langchain_community.chat_message_histories import ChatMessageHistory
 
 load_dotenv()
 
 # ----------------- CONNECT TO DATABASE -----------------
 
 def connect_to_mongodb():
-    uri = os.getenv('URI')
+    uri = os.getenv('MONGODB_URI')
     client = MongoClient(uri)
     try:
         client.admin.command('ping')
@@ -26,7 +24,7 @@ def connect_to_mongodb():
 # ----------------- ADD DATA TO DATABASE -----------------
 
 def addDataToMongoDB(data):
-    mongo_client = MongoClient(os.getenv('URI'))
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     
@@ -49,7 +47,7 @@ def addDataToMongoDB(data):
 # ----------------- UPDATE DATA IN DATABASE -----------------
 
 def updateData(projectName, newData):
-    mongo_client = MongoClient(os.getenv('URI'))
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     
@@ -60,13 +58,18 @@ def updateData(projectName, newData):
 
     try:
         # Update the existing project with the new data
+        data = projects_collection.find_one({"project_name": projectName})
+        newData['github_link'] = data.get('github_link', []) + newData.get('github_link', [])
+        newData['jira_link'] = data.get('jira_link', []) + newData.get('jira_link', [])
+        newData['docs_link'] = data.get('docs_link', []) + newData.get('docs_link', [])
+        newData['confluence_link'] = data.get('confluence_link', []) + newData.get('confluence_link', [])
         result = projects_collection.update_one({"project_name": projectName}, {"$set": newData})
         if result.matched_count == 0:
             # No document matched the query to update
             return {"error": "No document found with the given project name", "code": 404}
         if result.modified_count == 0:
             # Document was found but no new data was modified
-            return {"success": "Data was not updated (it may already be up-to-date)", "code": 304}
+            return {"error": "Data was not updated (it may already be up-to-date)", "code": 304}
         
         return {"success": "Data updated in MongoDB successfully", "code": 200}
     except Exception as e:
@@ -76,7 +79,7 @@ def updateData(projectName, newData):
 # ----------------- GET PROJECT LIST FROM DATABASE -----------------
 
 def getProjectListDatabase():
-    mongo_client = MongoClient(os.getenv('URI'))
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     project_list = projects_collection.distinct("project_name")
@@ -85,17 +88,16 @@ def getProjectListDatabase():
 # ----------------- GET EPIC LIST FROM DATABASE -----------------
 
 def getEpicListDatabase(projectName):
-    mongo_client = connect_to_mongodb()
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     project = projects_collection.find_one({"project_name": projectName}, {"issues": 1})
-
+    
     if not project:
-        return jsonify({"error": "No project found"}), 404
-
+        return None
+    
     issues = project.get('issues', [])
-    epics = [{'name': issue.get('summary'), 'key': issue.get('key')} for issue in issues if issue.get('issue_type') == 'Epic']
-
+    epics = [{'name':issue.get('summary'), 'key': issue.get('key')} for issue in issues if issue.get('issue_type') == 'Epic']
     result = {
         "project_name": projectName,
         "epics": epics
@@ -103,14 +105,10 @@ def getEpicListDatabase(projectName):
     
     return jsonify(result)
 
-
-
-
-
 # ----------------- GET TICKET LIST FROM DATABASE -----------------
 
 def getTicketListDatabase(projectName, epicKey):
-    mongo_client = MongoClient(os.getenv('URI'))
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     
@@ -191,82 +189,219 @@ def getTicketListDatabase(projectName, epicKey):
 
 # ----------------- GET LINK BASED ON DATA FROM DATABASE -----------------
 
-def getLinkfromDatabase(projectName, epicKey = None, ticketKey = None):
-
-    mongo_client = MongoClient(os.getenv('URI'))
+def getLinkfromDatabase(projectName, epicKey=None, ticketKey=None):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
     db = mongo_client['project_db']
     projects_collection = db['projects']
     result = []
+
     data = projects_collection.find({"project_name": projectName})
-    for record in data:
+    data_list = list(data)  # Convert cursor to list for better logging
+    print(f"Query result for project {projectName}: {data_list}")
+
+    for record in data_list:
         entry = {
             "project_name": record.get('project_name'),
             "links_status": []
         }
-        # Check github links
-        github_links = record.get('github_link', {})
-        for link in github_links:
-            entry["links_status"].append({"url": link.get('url'), "status": "OK", "date": link.get('day_added'), "parent": projectName})
 
-        # Check docs links
-        docs_link = record.get('docs_link', {})
-        for link in docs_link:
-            entry["links_status"].append({"url": link.get('url'), "status": "OK", "date": link.get('day_added'), "parent": projectName})
+        # Function to process links
+        def process_links(links, parent):
+            for link in links:
+                entry["links_status"].append({
+                    "url": link.get('url'),
+                    "status": "OK",
+                    "date": datetime.strptime(link.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y') if "created_date" in link else "N/A",
+                    "parent": parent
+                })
 
-        # Check jira links
-        jira_link = record.get('jira_link', {})
-        for link in jira_link:
-            entry["links_status"].append({"url": link.get('url'), "status": "OK", "date": link.get('day_added'), "parent": projectName})
+        # Process general links
+        process_links(record.get('github_link', []), projectName)
+        process_links(record.get('docs_link', []), projectName)
+        process_links(record.get('jira_link', []), projectName)
+        process_links(record.get('confluence_link', []), projectName)
 
-        # Check confluence links
-        confluence_link = record.get('confluence_link', {})
-        for link in confluence_link:
-            entry["links_status"].append({"url": link.get('url'), "status": "OK", "date": link.get('day_added'), "parent": projectName})
-
-        # Check confluence links in issues
+        # Process issue links
         issues = record.get('issues', [])
-        if (epicKey is not None):
-            epics = next((issue for issue in issues if issue.get('key') == epicKey and issue.get('issue_type') == 'Epic'), None)
-            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('confluence', [])]])
-            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('googleDocs', [])]])
-            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('otherLinks', [])]])
+        for epic in issues:
+            if epicKey and epic.get('key') == epicKey and epic.get('issue_type') == 'Epic':
+                process_links(epic.get('source', {}).get('confluence', []), epicKey)
+                process_links(epic.get('source', {}).get('googleDocs', []), epicKey)
+                process_links(epic.get('source', {}).get('otherLinks', []), epicKey)
 
-            if (ticketKey is not None):
-                tasks = next((epic for epic in epics.get('tasks', []) if epic.get('key') == ticketKey), None)
-                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('confluence', [])]])
-                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('googleDocs', [])]])
-                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('otherLinks', [])]])
+                if ticketKey:
+                    task = next((task for task in epic.get('tasks', []) if task.get('key') == ticketKey), None)
+                    if task:
+                        process_links(task.get('source', {}).get('confluence', []), ticketKey)
+                        process_links(task.get('source', {}).get('googleDocs', []), ticketKey)
+                        process_links(task.get('source', {}).get('otherLinks', []), ticketKey)
+                else:
+                    for task in epic.get('tasks', []):
+                        process_links(task.get('source', {}).get('confluence', []), task.get('key'))
+                        process_links(task.get('source', {}).get('googleDocs', []), task.get('key'))
+                        process_links(task.get('source', {}).get('otherLinks', []), task.get('key'))
             else:
-                tasks = epics.get('tasks', [])
-                for task in tasks:
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('confluence', [])]])
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('googleDocs', [])]])
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('otherLinks', [])]])
-        else:
-            issues = record.get('issues', [])
-            for epics in issues:
-                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('confluence', [])]])
-                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('googleDocs', [])]])
-                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('otherLinks', [])]])
+                process_links(epic.get('source', {}).get('confluence', []), epic.get('key'))
+                process_links(epic.get('source', {}).get('googleDocs', []), epic.get('key'))
+                process_links(epic.get('source', {}).get('otherLinks', []), epic.get('key'))
 
-                tasks = epics.get('tasks', [])
-                for task in tasks:
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('confluence', [])]])
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('googleDocs', [])]])
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('otherLinks', [])]])
-
+                for task in epic.get('tasks', []):
+                    process_links(task.get('source', {}).get('confluence', []), task.get('key'))
+                    process_links(task.get('source', {}).get('googleDocs', []), task.get('key'))
+                    process_links(task.get('source', {}).get('otherLinks', []), task.get('key'))
 
         result.append(entry)
+        print(f"Processed record: {entry}")
 
-    return jsonify(result)
-
-
-        
-
-
+    return result
+# ---------------------------- PROMPT WITH AGENT ----------------------------
+def setPromptwithAgent(contextualize_q_system_prompt, qa_system_prompt, role):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['prompts']
+    if role == "CLARIFY" or role == "CHAT" or role == "SUGGESTION":
+        existing_role = projects_collection.find_one({"role": role})
+        if existing_role:
+            try:
+                result = projects_collection.update_one(
+                    {"role": role},
+                    {"$set": {
+                        "contextualize_q_system_prompt": contextualize_q_system_prompt,
+                        "qa_system_prompt": qa_system_prompt
+                    }}
+                )
+                if result.matched_count == 0:
+                    return {"error": "No document found with the given role", "code": 404}
+                if result.modified_count == 0:
+                    return {"success": "Prompt was not updated (it may already be up-to-date)", "code": 304}
+                return {"success": "Prompt updated successfully", "code": 200}
+            except Exception as e:
+                return {"error": "Failed to update prompt", "details": str(e), "code": 500}
+        else:
+            try:
+                projects_collection.insert_one({
+                    "role": role,
+                    "contextualize_q_system_prompt": contextualize_q_system_prompt,
+                    "qa_system_prompt": qa_system_prompt
+                })
+                return {"success": "Prompt added successfully", "code": 200}
+            except Exception as e:
+                return {"error": "Failed to add prompt", "details": str(e), "code": 500}
+    else:
+        return {"error": "Invalid role", "code": 400}
     
+# -------------------------- AGENT DATABASE FUNCTIONS --------------------------
+def getPromptwithAgent(role):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['prompts']
+    if role == "CLARIFY" or role == "CHAT" or role == "SUGGESTION":
+        existing_role = projects_collection.find_one({"role": role})
+        if existing_role:
+            return {
+                "contextualize_q_system_prompt": "".join(existing_role.get('contextualize_q_system_prompt', [])),
+                "qa_system_prompt": "".join(existing_role.get('qa_system_prompt', []))
+            }
+        else:
+            return {"error": "Prompt not found", "code": 404}
+    else:
+        return {"error": "Invalid role", "code": 400}
 
 
+def store_message(session_id, sender, content, input_token, output_token):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    message = {
+        "sender": sender,
+        "content": content,
+        "input_token": input_token,
+        "output_token": output_token,
+        "timestamp": datetime.now()
+    }
 
+    projects_collection.update_one(
+        {"sessionID": session_id},
+        {"$push": {"messages": message}},
+        upsert=True
+    )
+
+# Function to get session history from MongoDB
+def get_session_history(session_id):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    session = projects_collection.find_one({"sessionID": session_id})
+    try:
+        history = ChatMessageHistory()
+        if session and "messages" in session:
+            for message in session["messages"]:
+                if message['sender'] == 'human':
+                    history.add_message(HumanMessage(content=message['content']))
+                else:
+                    history.add_message(AIMessage(content=message['content']))
+        return history
+    except Exception as e:
+        return {"error": "Failed to get session history", "details": str(e), "code": 500}
+
+def deleteSessionHistory(session_id):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    try:
+        projects_collection.delete_one({"sessionID": session_id})
+        return {"success": "Session history deleted successfully", "code": 200}
+    except Exception as e:
+        return {"error": "Failed to delete session history", "details": str(e), "code": 500}
+
+def insertClarifyQuestionHistory(formatted_questions):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    try:
+        for question in formatted_questions:
+            projects_collection.insert_one(question)
+        return {"success": "Clarify questions added successfully", "code": 200}
+    except Exception as e:
+        return {"error": "Failed to add clarify questions", "details": str(e), "code": 500}
     
-        
+def deleteClarifyQuestionHistory(sessionId, project_name, epic_key, ticket_key = None, url = None):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    try:
+        projects_collection.delete_one({"sessionID": sessionId, "project_name": project_name, "epic_key": epic_key, "ticket_key": ticket_key, "url": url})
+        return {"success": "Clarify question deleted successfully", "code": 200}
+    except Exception as e:
+        return {"error": "Failed to delete clarify question", "details": str(e), "code": 500}
+    
+def getClarifyQuestionHistory(sessionId, project_name, epic_key, ticket_key = None, url = None):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['history']
+    try:
+        clarify_question = projects_collection.find_one({"sessionID": sessionId, "project_name": project_name, "epic_key": epic_key, "ticket_key": ticket_key, "url": url})
+        return clarify_question.get('question')
+    except Exception as e:
+        return {"error": "Failed to get clarify question", "details": str(e), "code": 500}
+# --------------------- GET LINK DETAILS FROM DATABASE ---------------------
+'''
+This supports only Confluence links in Epic and Ticket description for now
+'''
+def getDetailsfromDatabase(project_name, epic_key, ticket_key = None, url = None):
+    mongo_client = MongoClient(os.getenv('MONGODB_URI'))
+    db = mongo_client['project_db']
+    projects_collection = db['projects']
+    try:
+        project = projects_collection.find_one({"project_name": project_name})
+        epic = next((epic for epic in project.get('issues', []) if epic.get('key') == epic_key), None)
+        if ticket_key is not None:
+            ticket = next((ticket for ticket in epic.get('tasks', []) if ticket.get('key') == ticket_key), None)
+            return {"content": ticket.get('description', []), "title": ticket.get('summary', [])} if ticket is not None else {"error": "Ticket not found in the epic", "code": 404}
+        elif url is not None:
+            data = next((link for link in epic.get('source', {}).get('confluence', []) if link.get('url') == url), None)
+            return {"content": data.get('content', []), "title": data.get('title', [])} if data is not None else {"error": "Link not found in the epic", "code": 404}
+    except Exception as e:
+        return {"error": "Failed to get details from database (database is not available)", "details": str(e), "code": 500}
+            
+    return None
