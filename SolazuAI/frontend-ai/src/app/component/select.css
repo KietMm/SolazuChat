@@ -25,37 +25,36 @@
 .select__control--is-focused {
     border-color: transparent !important;
     box-shadow: none !important;
+    width: 100%;
 }
 
   .select__dropdown-indicator {
     display: none !important;
+    width: 100%;
   }
 
   .select__placeholder {
     color: #000000;
+    width: 100%;
   }
 
   .select__single-value {
     color: #000000;
+    width: 100%;
   }
 
-  /* Basic styling for the dropdown menu */
-.select__menu {
-    background: rgb(58, 19, 19); /* Background color */
-    border: 1px solid #ccc; /* Border around the dropdown */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Optional: Adds shadow for depth */
-    border-radius: 4px; /* Rounded corners */
-    
-}
 /* Styling for the dropdown menu list */
 .select__menu-list {
-    padding: 0; /* Removes padding inside the dropdown */
-    margin: 0; /* Adjust margin as needed */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
     max-height: 200px; /* Sets a maximum height with scroll on overflow */
     overflow-y: auto; /* Allows scrolling inside the dropdown */
     display: flex;
     flex-direction: column;
     color: black;
+    min-width: max-content !important;
+    max-width: 200px !important;
+    border: 1px solid #ccc; /* Border around the dropdown */
+    border-radius: 4px; /* Rounded corners */
 }
 
 /* Styling for individual menu items */
@@ -77,4 +76,5 @@
 .select__option--is-selected {
     background-color: white !important;
     color: #6d31ed !important;
+    width: 100%;
   }

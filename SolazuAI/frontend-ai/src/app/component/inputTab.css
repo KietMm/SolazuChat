@@ -1,0 +1,65 @@
+.tabs-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .tabs-header {
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 20px;
+    color: #6d31ed;
+    transition: all 1s ease;
+  }
+  
+  .tab-button {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    outline: none;
+  }
+  
+  .tab-button.active {
+    border-bottom: 2px solid #6d31ed;
+    font-weight: bold;
+  }
+  
+  .tabs-content {
+    min-height: 15vh; /* Adjust as needed */
+    max-height: 20vh;
+    overflow-y: auto;
+  }
+  
+  .links-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .link-input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    color: black;
+  }
+  
+  .add-link-button {
+    padding: 10px;
+    background-color: #c5aaff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.5s ease;
+  }
+
+  .add-link-button:hover {
+    background-color: #6d31ed;
+    transition: all 0.5s ease;
+  }
+  

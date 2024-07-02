@@ -226,33 +226,33 @@ def getLinkfromDatabase(projectName, epicKey = None, ticketKey = None):
         issues = record.get('issues', [])
         if (epicKey is not None):
             epics = next((issue for issue in issues if issue.get('key') == epicKey and issue.get('issue_type') == 'Epic'), None)
-            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('confluence', [])]])
-            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('googleDocs', [])]])
-            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('otherLinks', [])]])
+            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('confluence', [])]])
+            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('googleDocs', [])]])
+            entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('otherLinks', [])]])
 
             if (ticketKey is not None):
                 tasks = next((epic for epic in epics.get('tasks', []) if epic.get('key') == ticketKey), None)
-                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('confluence', [])]])
-                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('googleDocs', [])]])
-                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('otherLinks', [])]])
+                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('confluence', [])]])
+                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('googleDocs', [])]])
+                entry["links_status"].extend([{"parent": tasks.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in tasks.get('source', {}).get('otherLinks', [])]])
             else:
                 tasks = epics.get('tasks', [])
                 for task in tasks:
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('confluence', [])]])
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('googleDocs', [])]])
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('otherLinks', [])]])
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('confluence', [])]])
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('googleDocs', [])]])
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('otherLinks', [])]])
         else:
             issues = record.get('issues', [])
             for epics in issues:
-                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('confluence', [])]])
-                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('googleDocs', [])]])
-                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('otherLinks', [])]])
+                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('confluence', [])]])
+                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('googleDocs', [])]])
+                entry["links_status"].extend([{"parent": epics.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in epics.get('source', {}).get('otherLinks', [])]])
 
                 tasks = epics.get('tasks', [])
                 for task in tasks:
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('confluence', [])]])
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('googleDocs', [])]])
-                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('otherLinks', [])]])
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Confluence", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('confluence', [])]])
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Docs", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('googleDocs', [])]])
+                    entry["links_status"].extend([{"parent": task.get('key'), "url": j.get('url'), "status": "OK", "type": "Other", "date": None if j.get("created_date") is None else datetime.strptime(j.get("created_date").split('T')[0], '%Y-%m-%d').strftime('%d-%m-%Y')} for j in [i for i in task.get('source', {}).get('otherLinks', [])]])
 
 
         result.append(entry)
@@ -450,7 +450,11 @@ def getDetailsfromDatabase(project_name, epic_key, ticket_key = None, url = None
             ticket = next((ticket for ticket in epic.get('tasks', []) if ticket.get('key') == ticket_key), None)
             return {"content": ticket.get('description', []), "title": ticket.get('summary', [])} if ticket is not None else {"error": "Ticket not found in the epic", "code": 404}
         elif url is not None:
-            data = next((link for link in epic.get('source', {}).get('confluence', []) if link.get('url') == url), None)
+            print(url)
+            if 'atlassian.net/wiki/pages' in url:
+                data = next((link for link in epic.get('source', {}).get('confluence', []) if link.get('url') == url), None)
+            elif 'docs.google.com' in url:
+                data = next((link for link in epic.get('source', {}).get('googleDocs', []) if link.get('url') == url), None)
             return {"content": data.get('content', []), "title": data.get('title', [])} if data is not None else {"error": "Link not found in the epic", "code": 404}
     except Exception as e:
         return {"error": "Failed to get details from database (database is not available)", "details": str(e), "code": 500}

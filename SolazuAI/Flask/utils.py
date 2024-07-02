@@ -85,34 +85,43 @@ def get_confluence_details(url):
 
 
 # ---------------------------- GET GOOGLE DOCS DETAILS BY LINK --------------------------------
-def read_paragraph_element(element):
-    """Returns the text in the given ParagraphElement."""
+def read_paragraph_element_as_html(element):
+    """Returns the HTML in the given ParagraphElement."""
     text_run = element.get('textRun')
     if not text_run:
         return ''
-    return text_run.get('content')
+    content = text_run.get('content')
+    # You can add more styling and formatting here as needed
+    return content
 
-def read_structural_elements(elements):
-    """Recurses through a list of Structural Elements to read a document's text where text may be in nested elements."""
-    text = ''
+def read_structural_elements_as_html(elements):
+    """Recurses through a list of Structural Elements to read a document's text and convert to HTML where text may be in nested elements."""
+    html = ''
     for value in elements:
         if 'paragraph' in value:
             elements = value.get('paragraph').get('elements')
             for elem in elements:
-                text += read_paragraph_element(elem)
+                html += read_paragraph_element_as_html(elem)
+            html += '<br/>'  # Add line break for each paragraph
         elif 'table' in value:
             table = value.get('table')
+            html += '<table>'
             for row in table.get('tableRows'):
+                html += '<tr>'
                 cells = row.get('tableCells')
                 for cell in cells:
-                    text += read_structural_elements(cell.get('content'))
+                    html += '<td>'
+                    html += read_structural_elements_as_html(cell.get('content'))
+                    html += '</td>'
+                html += '</tr>'
+            html += '</table>'
         elif 'tableOfContents' in value:
             toc = value.get('tableOfContents')
-            text += read_structural_elements(toc.get('content'))
-    return text
+            html += read_structural_elements_as_html(toc.get('content'))
+    return html
 
 def get_google_docs_details(url):
-    SCOPES = os.getenv('SCOPES')
+    SCOPES = os.getenv('SCOPE')
     DISCOVERY_DOC = os.getenv('DISCOVERY_DOC')
     try:
         document_id = url.split('/')[5]  # Extract document ID from URL
@@ -130,8 +139,9 @@ def get_google_docs_details(url):
         doc = docs_service.documents().get(documentId=document_id).execute()
         doc_content = doc.get('body').get('content')
 
-        text = read_structural_elements(doc_content)
+        text = read_structural_elements_as_html(doc_content)
         doc_details = {
+            "url": url,
             "id": doc.get('documentId'),
             "title": doc.get('title'),
             "content": text
@@ -184,6 +194,9 @@ def get_remote_links(issue_key):
             if 'test-company-webhook.atlassian.net' in url:
                 confluence_details = get_confluence_details(url)
                 classified_links['confluence'].append({'url': url, **confluence_details})
+            elif 'docs.google.com' in url:
+                google_docs_details = get_google_docs_details(url)
+                classified_links['googleDocs'].append({'url': url, **google_docs_details})
             else:
                 classified_links['otherLinks'].append({'url': url})
         
@@ -192,7 +205,7 @@ def get_remote_links(issue_key):
     except Exception as e:
         return {"error": "Failed to fetch remote issue links from JIRA", "details": str(e)}
     
-def handle_webhook(projectName, githubLink = None, jiraLink = None, confluenceLink = None, docsLink = None):
+def handle_webhook(projectName, githubLink = None, jiraLink = None, docsLink = None, confluenceLink = None):
     '''
     Handle the webhook data and return the formatted data
     '''

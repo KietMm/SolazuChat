@@ -60,8 +60,8 @@ const Prompt = () => {
         <div className='promptManager'>
             <div className='heading'>
                 <h1>Prompt Manager</h1>
+                {showAlert && <Alert className='border-green-500 bg-green-100 rounded-lg flex flex-col gap-2 p-4 text-sm w-auto mr-6' onDismiss={() => alert('Alert dismissed!')}><span className="font-semibold text-green-700">{alertType}</span><span className='font-normal text-green-700 ml-1'>{alertMessage}</span></Alert>}
             </div>
-            {showAlert && <Alert className='border-green-500 bg-green-100 rounded-lg flex flex-col gap-2 p-4 text-sm' onDismiss={() => alert('Alert dismissed!')}><span className="font-semibold text-green-700">{alertType}</span><span className='font-normal text-green-700 ml-1'>{alertMessage}</span></Alert>}
             {prompt && (
                 <div className='prompt'>
                     <div className='selection'>

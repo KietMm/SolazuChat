@@ -1,0 +1,88 @@
+/* This is the outermost part of the select component. */
+.selectOption {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #9e7aed;
+    border-radius: 5px;
+    padding-left: 5px;
+    padding-right: 10px;
+    width: 95%;
+    margin-top: 20px;
+    height: 50px;
+  }
+  
+  .select__control {
+    background-color: #fff;
+    border: none !important; /* Removes the border */
+    box-shadow: none !important; /* Removes box shadows which might look like borders */
+    outline: none !important; /* Ensures no outline is visible on focus */
+    height: 40px;
+    width: 100%;
+    color: black;
+  }
+  
+  /* Additional styling to handle focus states */
+  .select__control--is-focused {
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+  
+  .select__dropdown-indicator {
+    display: none !important;
+  }
+  
+  .select__placeholder {
+    color: #000000 !important;
+  }
+  
+  .select__single-value {
+    color: #000000 !important;
+  }
+  
+  /* Basic styling for the dropdown menu */
+  .select__menu {
+    background: rgb(58, 19, 19); /* Background color */
+    border: 1px solid #ccc; /* Border around the dropdown */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Optional: Adds shadow for depth */
+    border-radius: 4px; /* Rounded corners */
+  }
+  
+  /* Styling for the dropdown menu list */
+  .select__menu-list {
+    padding: 0; /* Removes padding inside the dropdown */
+    margin: 0; /* Adjust margin as needed */
+    max-height: 200px; /* Sets a maximum height with scroll on overflow */
+    overflow-y: auto; /* Allows scrolling inside the dropdown */
+    display: flex;
+    flex-direction: column;
+    color: black;
+  }
+  
+  /* Styling for individual menu items */
+  .select__option {
+    padding: 8px 12px; /* Padding for each option */
+    cursor: pointer; /* Changes the cursor to a pointer */
+    transition: background-color 0.2s; /* Smooth transition for hover effect */
+    background-color: white !important;
+    transition: all 0.4s ease;
+  
+    /* Styles for when an option is being hovered over */
+    &:hover {
+      background-color: #f4efff !important;
+      color: #6d31ed !important;
+      transition: all 0.4s ease;
+    }
+  }
+  
+  .select__option--is-selected {
+    background-color: white !important;
+    color: #6d31ed !important;
+  }
+  
+  /* Hide the clear indicator (X button) */
+  .select__clear-indicator {
+    display: none !important;
+  }
+  

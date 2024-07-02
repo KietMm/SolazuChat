@@ -28,7 +28,7 @@ load_dotenv()
 LANGCHAIN_TRACING_V2 = os.getenv("LANGCHAIN_TRACING_V2")
 LANGCHAIN_API_KEY = os.getenv("LANGCHAIN_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-llm = ChatOpenAI(model="gpt-3.5-turbo-0125", temperature=0)
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
 tokenizer = tiktoken.get_encoding("cl100k_base")
 # ----------------------------------------------------------------------------
 

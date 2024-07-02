@@ -158,6 +158,11 @@ def webhook():
 
     return handle_webhook(projectName, githubLink, jiraLink, docsLink, confluenceLink)
 
+@app.route('/test2', methods=['GET'])
+def test2():
+    url = request.args.get('url')
+    return get_google_docs_details(url)
+
 
 if __name__ == "__main__":
     connect_to_mongodb()
