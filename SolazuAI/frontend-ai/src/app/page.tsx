@@ -11,6 +11,7 @@ import { IoIosCheckmarkCircle } from "react-icons/io";
 import { IoWarning } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
 import { IoIosArrowUp } from "react-icons/io";
+import { Spinner } from "flowbite-react";
 
 const Home: React.FC = () => {
   const [projects, setProjects] = useState<string[]>([]);
@@ -28,6 +29,7 @@ const Home: React.FC = () => {
   const chatHistoryRef = useRef(null);
   const questionRefs = useRef([]);
   const [focusedQuestionIndex, setFocusedQuestionIndex] = useState(null);
+  const [isFetching, setIsFetching] = useState(false);
 
   const fetchProjects = async () => {
     try {
@@ -132,6 +134,7 @@ const Home: React.FC = () => {
 
   const postQuestion = async () => {
     try {
+      setIsFetching(true);
       const response = await fetch('http://127.0.0.1:5000/getQuestion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -149,6 +152,7 @@ const Home: React.FC = () => {
       if (postData.success) {
         fetchQuestionsFromDatabase();
       }
+      setIsFetching(false);
     } catch (error) {
       console.error('Error posting question:', error);
     }
@@ -324,7 +328,7 @@ const Home: React.FC = () => {
         <Select options={projects} kind="project" onSelect={handleProjectSelect} />
         <Select options={epics.map(epic => epic.name)} kind="epic" onSelect={handleEpicSelect} />
         <Select options={tickets.map(ticket => ticket.name)} kind="ticket" onSelect={handleTicketSelect} />
-        <button onClick={postQuestion}>Clarify</button>
+        <button onClick={postQuestion}>{isFetching ? (<Spinner className='fill-cyan-600' aria-label="Warning spinner example" />):(null)} Clarify</button>
       </div>
       <div className="container">
         <div className="heading">

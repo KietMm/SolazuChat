@@ -153,7 +153,7 @@ def CLARIFY_AGENT(project_name, epic_key, ticket_key = None, url = None):
         else:
             try:
                 rag_chain = rag_chains_without_history('CLARIFY', project_name, epic_key, ticket_key, url)
-                response = rag_chain.invoke("Generate questions from the context. Return the questions in the following format: Question one?\nQuestion two?\n...")
+                response = rag_chain.invoke("Generate questions from the context succinctly. Return the questions in the following format: Question content\nQuestion content\n...")
                 formatted_questions = format_questions(response, project_name, epic_key, ticket_key, url)
                 insertClarifyQuestionHistory(formatted_questions)
                 return {"success": "Questions generated successfully", "response": response}
