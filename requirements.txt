@@ -1,0 +1,11 @@
+langchain
+langchain-community
+langchainhub
+langchain-openai
+langchain-chroma
+bs4
+flask
+tiktoken
+pymongo
+python-dotenv
+markdownify
